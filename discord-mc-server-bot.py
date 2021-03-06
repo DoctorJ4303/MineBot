@@ -678,3 +678,4 @@ def printLog():
         print(line.rstrip().decode())
 init()
 #eraeraer
+#da;fjksdf
