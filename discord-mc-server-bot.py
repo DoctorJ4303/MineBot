@@ -1,4 +1,4 @@
-scriptVersion = '1.2.3'
+scriptVersion = '1.2.4'
 # Thanks to nickbrooking for the mc-server code
 import discord
 import threading
@@ -677,5 +677,9 @@ def printLog():
         line = server.stdout.readline()
         print(line.rstrip().decode())
 init()
+<<<<<<< HEAD
 #reeeeeeeeeeee
 #idshgaskjdghaskjhdakshdkasjhdkasdhakshdkajshdkashdk
+=======
+#eraeraer
+>>>>>>> 3ad583e8357a13b8d728e014070b4ebe9104b1e2
