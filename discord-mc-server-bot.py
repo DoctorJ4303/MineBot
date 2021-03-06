@@ -677,3 +677,4 @@ def printLog():
         line = server.stdout.readline()
         print(line.rstrip().decode())
 init()
+#jedrek is cool
