@@ -677,14 +677,3 @@ def printLog():
         line = server.stdout.readline()
         print(line.rstrip().decode())
 init()
-<<<<<<< HEAD
-#eraeraer
-#da;fjksdf
-=======
-<<<<<<< HEAD
-#reeeeeeeeeeee
-#idshgaskjdghaskjhdakshdkasjhdkasdhakshdkajshdkashdk
-=======
-#eraeraer
->>>>>>> 3ad583e8357a13b8d728e014070b4ebe9104b1e2
->>>>>>> 40e580aba07621f7fdce3c181008b1a1d4ce1ee4
