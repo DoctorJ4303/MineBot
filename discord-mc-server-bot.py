@@ -1,4 +1,4 @@
-scriptVersion = '1.2.3'
+scriptVersion = '1.2.4'
 # Thanks to nickbrooking for the mc-server code
 import discord
 import threading
