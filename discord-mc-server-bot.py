@@ -678,3 +678,5 @@ def printLog():
         print(line.rstrip().decode())
 init()
 #jedrek is cool
+#Justin is cool
+#Milo is cool
