@@ -505,11 +505,11 @@ async def regen(ctx):
     try:
         levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=10)
         for i in range(len(propFile)):
-            if 'level-seed=' propFile[i]:
+            if 'level-seed=' in propFile[i]:
                 propFile[i] = 'level-seed=' + levelSeed.content + '\n'
     except TimeoutError:
         for i in range(len(propFile)):
-            if 'level-seed=' propFile[i]:
+            if 'level-seed=' in propFile[i]:
                 propFile[i] = 'level-seed=\n'
 
 
