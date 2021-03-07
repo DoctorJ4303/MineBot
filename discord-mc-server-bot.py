@@ -677,10 +677,3 @@ def printLog():
         line = server.stdout.readline()
         print(line.rstrip().decode())
 init()
-#jedrek is cool
-#Justin is cool
-#Milo is cool
-#Test
-#Test 2
-#Test 3
-#Test 4
