@@ -505,7 +505,7 @@ async def regen(ctx):
     levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=10)
     if not levelSeed.content == None:
         with open('server.properties', 'rt') as propFile:
-            
+            pass
 
 @client.command()
 async def properties(ctx):
