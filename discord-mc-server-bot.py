@@ -493,14 +493,18 @@ async def regen(ctx):
     noAnswers = ['no','naw','nah','nope','n']
 
     await ctx.send('Would you like to save ' + worldName + '?')
-    msg = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-    if msg.content.lower() in yesAnswers:
+    answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+    if answer.content.lower() in yesAnswers:
         await ctx.send('Saving...')
         saveWorld()
-        try:
-            shutil.rmtree(fr'{worldName}/')
-        except:
-            m('World file not found')
+    try:
+        shutil.rmtree(fr'{worldName}/')
+    except:
+        m('World file not found')
+    await ctx.send('What is the seed of your new world seed (optional)')
+    levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+    
+
 @client.command()
 async def properties(ctx):
     description = '`1`  gamemode\n`2`  difficulty\n`3`  pvp\n`4`  hardcore\n`5`  motd'
