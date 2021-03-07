@@ -491,7 +491,7 @@ async def world(ctx, arg):
 async def regen(ctx):
     yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
     noAnswers = ['no','naw','nah','nope','n']
-
+    propFile = open('server.properties', 'rt').readlines()
     await ctx.send('Would you like to save ' + worldName + '?')
     answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
     if answer.content.lower() in yesAnswers:
@@ -502,10 +502,16 @@ async def regen(ctx):
     except:
         m('World file not found')
     await ctx.send('What is the seed of your new world seed (optional)')
-    levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=10)
-    if not levelSeed.content == None:
-        with open('server.properties', 'rt') as propFile:
-            pass
+    try:
+        levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=10)
+        for i in range(len(propFile)):
+            if 'level-seed=' propFile[i]:
+                propFile[i] = 'level-seed=' + levelSeed.content + '\n'
+    except TimeoutError:
+        for i in range(len(propFile)):
+            if 'level-seed=' propFile[i]:
+                propFile[i] = 'level-seed=\n'
+
 
 @client.command()
 async def properties(ctx):
