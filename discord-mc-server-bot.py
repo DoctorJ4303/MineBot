@@ -677,4 +677,8 @@ def printLog():
         line = server.stdout.readline()
         print(line.rstrip().decode())
 init()
+<<<<<<< HEAD
 #Test
+=======
+#jedrek is cool
+>>>>>>> e6660e5f67b3285b5fc299ccf4f0daa82efcc210
