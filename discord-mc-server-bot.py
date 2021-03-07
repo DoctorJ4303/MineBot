@@ -502,8 +502,10 @@ async def regen(ctx):
     except:
         m('World file not found')
     await ctx.send('What is the seed of your new world seed (optional)')
-    levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-    
+    levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=10)
+    if not levelSeed.content == None:
+        with open('server.properties', 'rt') as propFile:
+            
 
 @client.command()
 async def properties(ctx):
