@@ -511,7 +511,7 @@ async def regen(ctx):
         for i in range(len(propFile)):
             if 'level-seed=' in propFile[i]:
                 propFile[i] = 'level-seed=\n'
-    open('server.properties').write(''.join(propFile))
+    open('server.properties', 'wt').write(''.join(propFile))
 
 @client.command()
 async def properties(ctx):
