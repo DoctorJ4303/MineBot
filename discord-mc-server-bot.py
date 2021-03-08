@@ -532,7 +532,7 @@ async def regen(ctx):
                     version = serverDir[:-4]
                     print(version)
     verFile[1] = version + '\n'
-    open('versions.txt', 'wt').write(''.join(verFile))
+    open('versions.txt', 'wt').write(''.join(verFile)
     open('server.properties', 'wt').write(''.join(propFile))
 
 @client.command()
