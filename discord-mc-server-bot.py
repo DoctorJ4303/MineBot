@@ -218,9 +218,9 @@ async def map(ctx):
 async def worlds(ctx):
     embed = discord.Embed(title='Worlds', description=('Gets a list of all saved worlds'), color=ctx.author.color)
     await ctx.send(embed=embed)
-#Worlds
-@help.command()
-async def world(ctx):
+#Saved worlds
+@help.command(aliases=['savedworlds','worlds'])
+async def saved_worlds(ctx):
     embed = discord.Embed(title='World', description=('Able to change world from saves'), color=ctx.author.color)
     await ctx.send(embed=embed)
 #Regenerate
