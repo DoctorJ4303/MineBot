@@ -489,8 +489,12 @@ async def world(ctx, arg):
 #Regenerate
 @client.command()
 async def regen(ctx):
+    global serverDir
+    global version
+    global world
     yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
     noAnswers = ['no','naw','nah','nope','n']
+    versions = ['1.16','1.15','1.14','1.13','1.12','1.11','1.10','1.9','1.8']
     propFile = open('server.properties', 'rt').readlines()
     await ctx.send('Would you like to save ' + worldName + '?')
     answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
@@ -511,6 +515,24 @@ async def regen(ctx):
         for i in range(len(propFile)):
             if 'level-seed=' in propFile[i]:
                 propFile[i] = 'level-seed=\n'
+    levelName = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+    worldName = levelName.content
+    for i in range(len(propFile)):
+        if 'level-name=' in propFile[i]:
+            propFile[i] = 'level-name=' + levelName.content + '\n'
+    verFile = open('versions.txt', 'rt').readlines()
+    verFile[0] = worldName + '\n'
+    worldVersion = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+    for v in versions:
+        if v in worldVersion:
+            for jar in os.listdir('./versions'):
+                if v in str(jar):
+                    serverDir = str(jar)
+                    print(serverDir)
+                    version = serverDir[:-4]
+                    print(version)
+    verFile[1] = version + '\n'
+    open('versions.txt', 'wt').write(''.join(verFile))
     open('server.properties', 'wt').write(''.join(propFile))
 
 @client.command()
