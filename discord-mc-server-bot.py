@@ -64,6 +64,16 @@ def removeFancy(s):
             else:
                 i += 1
     return s
+#Remove space
+def removeSpaces(s):
+    i = 0
+    while i < len(s):
+        if s[i] == ' ':
+            s = s[0:i] + s[i+1:len(s)]
+            m(s)
+        else:
+            i+=1
+    return s
 #Start Server
 async def startServer(ctx):
     global server
@@ -208,19 +218,19 @@ async def voted(ctx):
     embed.add_field(name='Aliases', value='votedplayers')
     await ctx.send(embed=embed)
     
-# World
+#Map
 @help.command()
 async def map(ctx):
     embed = discord.Embed(title='Map', description=('Downloads a map from https://www.minecraftmaps.com/'), color=ctx.author.color)
     await ctx.send(embed=embed)
 #List Worlds
-@help.command()
-async def worlds(ctx):
-    embed = discord.Embed(title='Worlds', description=('Gets a list of all saved worlds'), color=ctx.author.color)
-    await ctx.send(embed=embed)
-#Saved worlds
 @help.command(aliases=['savedworlds','worlds'])
 async def saved_worlds(ctx):
+    embed = discord.Embed(title='Worlds', description=('Gets a list of all saved worlds'), color=ctx.author.color)
+    await ctx.send(embed=embed)
+#World
+@help.command()
+async def world(ctx):
     embed = discord.Embed(title='World', description=('Able to change world from saves'), color=ctx.author.color)
     await ctx.send(embed=embed)
 #Regenerate
@@ -495,9 +505,11 @@ async def regen(ctx):
     global worldName
     yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
     versions = ['1.16','1.15','1.14','1.13','1.12','1.11','1.10','1.9','1.8']
+    worldTypes = ['largeBiomes', 'default', 'amplified', 'superflat']
     propFile = open('server.properties', 'rt').readlines()
     verFile = open('versions.txt', 'rt').readlines()
     foundVersion = False
+    typeFound = False
 
     await ctx.send('Would you like to save ' + worldName + '?')
     answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
@@ -520,6 +532,18 @@ async def regen(ctx):
             if 'level-seed=' in propFile[i]:
                 propFile[i] = 'level-seed=\n'
 
+    await ctx.send('What type of world do you want? default, superflat, amplified, large biomes')
+    levelType = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+    for t in worldTypes:
+        if t.lower() in removeSpaces(levelType.content.lower()):
+            for i in range(len(propFile)):
+                if 'level-type=' in propFile[i]:
+                    propFile[i] == 'level-type=' + t + '\n'
+                    typeFound = True
+                    break
+    if not typeFound:
+        await ctx.send('Invalid type!')
+
     await ctx.send('What is the name of the new world?')
     levelName = await client.wait_for('message', check=lambda message: message.author == ctx.author)
     for i in range(len(propFile)):
@@ -538,7 +562,8 @@ async def regen(ctx):
                     version = serverDir[:-4]
     if not foundVersion:
         await ctx.send('Invalid version!')
-    else:
+
+    if foundVersion and typeFound:
         worldName = levelName.content
         verFile[0] = worldName + '\n'
         verFile[1] = version + '\n'
