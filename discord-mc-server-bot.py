@@ -571,7 +571,7 @@ async def generate(ctx):
         verFile[1] = version + '\n'
         open('versions.txt', 'wt').write(''.join(verFile))
         open('server.properties', 'wt').write(''.join(propFile))
-        await ctx.send('Success in generating ' + worldName)
+        await ctx.send('Success in generating ' + worldName + '!')
 
 @client.command()
 async def properties(ctx):
