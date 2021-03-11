@@ -177,11 +177,12 @@ async def on_ready():
     checkPlayers.start()
     m("Bot is up!")
 #Command Error
-#@client.event
-#async def on_command_error(ctx, error):
-#    if not isinstance(error, commands.CheckFailure):
-#        await ctx.message.add_reaction('❗')
-#        await ctx.send("Invalid command")
+@client.event
+async def on_command_error(ctx, error):
+    if not isinstance(error, commands.CheckFailure):
+        print(error)
+        await ctx.message.add_reaction('❗')
+        await ctx.send("Invalid command")
         
 #################
 # Help Commands #
@@ -233,9 +234,9 @@ async def saved_worlds(ctx):
 async def world(ctx):
     embed = discord.Embed(title='World', description=('Able to change world from saves'), color=ctx.author.color)
     await ctx.send(embed=embed)
-#Regenerate
+#Generate
 @help.command()
-async def regen(ctx):
+async def generate(ctx):
     embed = discord.Embed(title='Regenerate', description=('Regenerate a default minecraft world'), color=ctx.author.color)
     embed.add_field(name='Customizability', value='Custom seed, wait 5 seconds if not wanted\nCustom world name\nMinecraft version, 1.8.9-1.16.5')
     await ctx.send(embed=embed)
@@ -497,9 +498,9 @@ async def world(ctx, arg):
         worldName = getWorld(z)
         for name in z.namelist():
                 z.extract(name)
-#Regenerate
+#Generate
 @client.command()
-async def regen(ctx):
+async def generate(ctx):
     global serverDir
     global version
     global worldName
@@ -538,20 +539,20 @@ async def regen(ctx):
         if t.lower() in removeSpaces(levelType.content.lower()):
             for i in range(len(propFile)):
                 if 'level-type=' in propFile[i]:
-                    propFile[i] == 'level-type=' + t + '\n'
+                    propFile[i] = 'level-type=' + t + '\n'
                     typeFound = True
                     break
     if not typeFound:
         await ctx.send('Invalid type!')
+        return
 
     await ctx.send('What is the name of the new world?')
     levelName = await client.wait_for('message', check=lambda message: message.author == ctx.author)
     for i in range(len(propFile)):
         if 'level-name=' in propFile[i]:
             propFile[i] = 'level-name=' + levelName.content + '\n'
-    
 
-    await ctx.send('What is the version of ' + worldName)
+    await ctx.send('What is the version of ' + levelName.content)
     worldVersion = await client.wait_for('message', check=lambda message: message.author == ctx.author)
     for v in versions:
         if v in worldVersion.content:
@@ -560,6 +561,7 @@ async def regen(ctx):
                     foundVersion = True
                     serverDir = str(jar)
                     version = serverDir[:-4]
+                    break
     if not foundVersion:
         await ctx.send('Invalid version!')
 
@@ -569,6 +571,7 @@ async def regen(ctx):
         verFile[1] = version + '\n'
         open('versions.txt', 'wt').write(''.join(verFile))
         open('server.properties', 'wt').write(''.join(propFile))
+        await ctx.send('Success in generating ' + worldName)
 
 @client.command()
 async def properties(ctx):
