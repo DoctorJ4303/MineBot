@@ -1,0 +1,39 @@
+[09:24:44] [main/INFO]: Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[09:24:45] [main/WARN]: Ambiguity between arguments [teleport, destination] and [teleport, targets] with inputs: [Player, 0123, @e, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[09:24:45] [main/WARN]: Ambiguity between arguments [teleport, location] and [teleport, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[09:24:45] [main/WARN]: Ambiguity between arguments [teleport, location] and [teleport, targets] with inputs: [0.1 -0.5 .9, 0 0 0]
+[09:24:45] [main/WARN]: Ambiguity between arguments [teleport, targets] and [teleport, destination] with inputs: [Player, 0123, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[09:24:45] [main/WARN]: Ambiguity between arguments [teleport, targets, location] and [teleport, targets, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[09:24:45] [main/INFO]: Reloading ResourceManager: Default
+[09:24:45] [Worker-Main-12/INFO]: Loaded 7 recipes
+[09:24:45] [Worker-Main-12/INFO]: Loaded 927 advancements
+[09:24:46] [Server thread/INFO]: Starting minecraft server version 1.16.5
+[09:24:46] [Server thread/INFO]: Loading properties
+[09:24:46] [Server thread/INFO]: Default game type: SURVIVAL
+[09:24:46] [Server thread/INFO]: Generating keypair
+[09:24:46] [Server thread/INFO]: Starting Minecraft server on *:25565
+[09:24:46] [Server thread/INFO]: Using default channel type
+[09:24:46] [Server thread/INFO]: Preparing level "Justus + Me"
+[09:24:46] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[09:24:47] [Server thread/INFO]: Preparing spawn area: 0%
+[09:24:47] [Server thread/INFO]: Preparing spawn area: 0%
+[09:24:48] [Server thread/INFO]: Preparing spawn area: 0%
+[09:24:50] [Worker-Main-10/INFO]: Preparing spawn area: 83%
+[09:24:50] [Worker-Main-12/INFO]: Preparing spawn area: 83%
+[09:24:50] [Worker-Main-10/INFO]: Preparing spawn area: 83%
+[09:24:50] [Worker-Main-10/INFO]: Preparing spawn area: 83%
+[09:24:50] [Worker-Main-10/INFO]: Preparing spawn area: 83%
+[09:24:51] [Worker-Main-12/INFO]: Preparing spawn area: 83%
+[09:24:51] [Worker-Main-8/INFO]: Preparing spawn area: 83%
+[09:24:51] [Worker-Main-8/INFO]: Preparing spawn area: 87%
+[09:24:52] [Server thread/INFO]: Preparing spawn area: 87%
+[09:24:52] [Worker-Main-8/INFO]: Preparing spawn area: 88%
+[09:24:53] [Worker-Main-12/INFO]: Preparing spawn area: 95%
+[09:24:53] [Server thread/INFO]: Time elapsed: 6670 ms
+[09:24:53] [Server thread/INFO]: Done (6.734s)! For help, type "help"
+[09:25:05] [Server thread/INFO]: [Server] Server shutting down in 10 minutes
+[09:27:18] [User Authenticator #1/INFO]: UUID of player Doctor_J_4303 is 4ef410ae-3b70-4f23-99bc-6b0e3fb15439
+[09:27:18] [Server thread/INFO]: Doctor_J_4303[/100.64.10.10:65152] logged in with entity id 85 at (158.5, 64.0, -187.5)
+[09:27:18] [Server thread/INFO]: Doctor_J_4303 joined the game
+[09:27:19] [Server thread/INFO]: Doctor_J_4303 lost connection: Disconnected
+[09:27:19] [Server thread/INFO]: Doctor_J_4303 left the game

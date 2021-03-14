@@ -1,4 +1,4 @@
-scriptVersion = '1.2.4'
+scriptVersion = '1.2.5'
 # Thanks to nickbrooking for the mc-server code
 import discord
 import threading
@@ -64,6 +64,16 @@ def removeFancy(s):
             else:
                 i += 1
     return s
+#Remove space
+def removeSpaces(s):
+    i = 0
+    while i < len(s):
+        if s[i] == ' ':
+            s = s[0:i] + s[i+1:len(s)]
+            m(s)
+        else:
+            i+=1
+    return s
 #Start Server
 async def startServer(ctx):
     global server
@@ -86,7 +96,7 @@ async def stopServer():
     server.kill()
 #Zipdir
 def zipdir(path, ziph):
-    for root, dirs, files in os.walk(worldName):
+    for root, files in os.walk(worldName):
         for file in files:
             ziph.write(os.path.join(root, file))
 #Download World
@@ -95,7 +105,6 @@ async def download_world(ctx, arg):
     global serverDir
     global version
     lines = []
-    worldNameFound = False
     try:
                 
         await ctx.send('Downloading...')
@@ -108,18 +117,12 @@ async def download_world(ctx, arg):
         lines = open('server.properties','rt').readlines()           
         for i in range(len(lines)):
             if 'level-name=' in lines[i]:
-                lines[i] = f'level-name={worldName}\n'               
-        file = open('server.properties', 'wt').close()
-        with open('server.properties', 'at') as f:
-            for line in lines:
-                f.write(str(line))
+                lines[i] = f'level-name={worldName}\n'
+        open('server.properties', 'wt').write(''.join(lines))
                 
         lines = open('versions.txt','rt').readlines()
-        file = open('versions.txt', 'wt').close()
         lines[0] = worldName  + '\n'      
-        with open('versions.txt', 'at') as f:
-            for line in lines:
-                f.write(str(line))
+        open('versions.txt', 'wt').write(''.join(lines))
                             
         await ctx.send('Done!')
                 
@@ -143,7 +146,7 @@ def getVersion(ctx, arg):
         if htmlText.lower()[i:i+11] == 'mc version:':
             for v in versions:
                 if v in htmlText[i+10:i+20]:
-                    for root, dirs, files in os.walk("./versions"):
+                    for files in os.listdir('./versions'):
                         for fileName in files:
                             if fileName.endswith(r'.jar'):
                                 if v in fileName:
@@ -174,11 +177,12 @@ async def on_ready():
     checkPlayers.start()
     m("Bot is up!")
 #Command Error
-#@client.event
-#async def on_command_error(ctx, error):
-#    if not isinstance(error, commands.CheckFailure):
-#        await ctx.message.add_reaction('❗')
-#        await ctx.send("Invalid command")
+@client.event
+async def on_command_error(ctx, error):
+    if not isinstance(error, commands.CheckFailure):
+        print(error)
+        await ctx.message.add_reaction('❗')
+        await ctx.send("Invalid command")
         
 #################
 # Help Commands #
@@ -188,7 +192,7 @@ async def on_ready():
 async def help(ctx):
     embed = discord.Embed(title='Help', description='Use .help <command> for more info on a command', color=ctx.author.color)
     embed.add_field(name='General', value='start, cancel, say, voted')
-    embed.add_field(name='World', value='world, worlds, map')
+    embed.add_field(name='World', value='world, worlds, map,\n regen, properties')
     await ctx.send(embed=embed)
 
 # General
@@ -215,20 +219,32 @@ async def voted(ctx):
     embed.add_field(name='Aliases', value='votedplayers')
     await ctx.send(embed=embed)
     
-# World
+#Map
 @help.command()
 async def map(ctx):
     embed = discord.Embed(title='Map', description=('Downloads a map from https://www.minecraftmaps.com/'), color=ctx.author.color)
     await ctx.send(embed=embed)
-
-@help.command()
-async def worlds(ctx):
+#List Worlds
+@help.command(aliases=['savedworlds','worlds'])
+async def saved_worlds(ctx):
     embed = discord.Embed(title='Worlds', description=('Gets a list of all saved worlds'), color=ctx.author.color)
     await ctx.send(embed=embed)
-
+#World
 @help.command()
 async def world(ctx):
     embed = discord.Embed(title='World', description=('Able to change world from saves'), color=ctx.author.color)
+    await ctx.send(embed=embed)
+#Generate
+@help.command()
+async def generate(ctx):
+    embed = discord.Embed(title='Regenerate', description=('Regenerate a default minecraft world'), color=ctx.author.color)
+    embed.add_field(name='Customizability', value='Custom seed, wait 5 seconds if not wanted\nCustom world name\nMinecraft version, 1.8.9-1.16.5')
+    await ctx.send(embed=embed)
+#Properties
+@help.command()
+async def properties(ctx):
+    embed = discord.Embed(title='Properties', description=('Change default properties of a Minecraft server'), color=ctx.author.color)
+    embed.add_field(name='Customizable Properties', value='Default gamemode\nDefault difficulty\nAllowed pvp\nHardcore\nmotd (message of the day)')
     await ctx.send(embed=embed)
 
 ############
@@ -293,7 +309,6 @@ async def cancel(ctx):
 #Start
 @client.command(aliases=['votestart'])
 async def start(ctx):
-    global gamers
     global scriptVersion
     global serverStopped
     global votedPlayers
@@ -390,19 +405,17 @@ async def map(ctx, arg):
 async def saved_worlds(ctx):
     savedWorlds = []
     savedVersions = []
-    worlds = ''
-    versions = ''
     embed = discord.Embed(title='Saved Worlds', description='', color=ctx.author.color)
-    for root, dirs, files in os.walk("./saves"):
-                for fileName in files:
-                    for i in range(len(fileName)):
-                        if fileName[i] == '_':
-                            savedWorlds.append(fileName[0:i] + '\n')
-                            for j in range(9):
-                                if fileName[j+i+1] == '_':
-                                    savedVersions.append(fileName[i+1:j+i+1] + '\n')
-                                    break
+    for files in os.listdir('./saves'):
+        for fileName in files:
+            for i in range(len(fileName)):
+                if fileName[i] == '_':
+                    savedWorlds.append(fileName[0:i] + '\n')
+                    for j in range(9):
+                        if fileName[j+i+1] == '_':
+                            savedVersions.append(fileName[i+1:j+i+1] + '\n')
                             break
+                    break
     embed.add_field(name='Worlds', value=''.join(savedWorlds))
     embed.add_field(name='Versions', value=''.join(savedVersions))
     await ctx.send(embed=embed)
@@ -469,7 +482,6 @@ async def world(ctx, arg):
             fileName.write(out1)
         fileName.close()
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
-        noAnswers = ['no','naw','nah','nope','n']
 
         await ctx.send('Would you like to save ' + worldName + '?')
         msg = await client.wait_for('message', check=lambda message: message.author == ctx.author)
@@ -492,11 +504,19 @@ async def world(ctx, arg):
         os.remove(r"./saves/"+zipName)
         for name in z.namelist():
                 z.extract(name)
-#Regenerate
+#Generate
 @client.command()
-async def regen(ctx):
+async def generate(ctx):
+    global serverDir
+    global version
+    global worldName
     yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
-    noAnswers = ['no','naw','nah','nope','n']
+    versions = ['1.16','1.15','1.14','1.13','1.12','1.11','1.10','1.9','1.8']
+    worldTypes = ['largeBiomes', 'default', 'amplified', 'superflat']
+    propFile = open('server.properties', 'rt').readlines()
+    verFile = open('versions.txt', 'rt').readlines()
+    foundVersion = False
+    typeFound = False
 
     await ctx.send('Would you like to save ' + worldName + '?')
     answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
@@ -507,9 +527,57 @@ async def regen(ctx):
         shutil.rmtree(fr'{worldName}/')
     except:
         m('World file not found')
+
     await ctx.send('What is the seed of your new world seed (optional)')
-    levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-    
+    try:
+        levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=5)
+        for i in range(len(propFile)):
+            if 'level-seed=' in propFile[i]:
+                propFile[i] = 'level-seed=' + levelSeed.content + '\n'
+    except asyncio.exceptions.TimeoutError:
+        for i in range(len(propFile)):
+            if 'level-seed=' in propFile[i]:
+                propFile[i] = 'level-seed=\n'
+
+    await ctx.send('What type of world do you want? default, superflat, amplified, large biomes')
+    levelType = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+    for t in worldTypes:
+        if t.lower() in removeSpaces(levelType.content.lower()):
+            for i in range(len(propFile)):
+                if 'level-type=' in propFile[i]:
+                    propFile[i] = 'level-type=' + t + '\n'
+                    typeFound = True
+                    break
+    if not typeFound:
+        await ctx.send('Invalid type!')
+        return
+
+    await ctx.send('What is the name of the new world?')
+    levelName = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+    for i in range(len(propFile)):
+        if 'level-name=' in propFile[i]:
+            propFile[i] = 'level-name=' + levelName.content + '\n'
+
+    await ctx.send('What is the version of ' + levelName.content)
+    worldVersion = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+    for v in versions:
+        if v in worldVersion.content:
+            for jar in os.listdir('./versions'):
+                if v in str(jar):
+                    foundVersion = True
+                    serverDir = str(jar)
+                    version = serverDir[:-4]
+                    break
+    if not foundVersion:
+        await ctx.send('Invalid version!')
+
+    if foundVersion and typeFound:
+        worldName = levelName.content
+        verFile[0] = worldName + '\n'
+        verFile[1] = version + '\n'
+        open('versions.txt', 'wt').write(''.join(verFile))
+        open('server.properties', 'wt').write(''.join(propFile))
+        await ctx.send('Success in generating ' + worldName + '!')
 
 @client.command()
 async def properties(ctx):
