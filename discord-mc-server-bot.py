@@ -416,6 +416,7 @@ async def world(ctx, arg):
 #Take content out of file
     fileName = open(r"versions.txt", "r")
     bool1 = False
+    zipName = ""
     content = fileName.readlines()
     print(content)
     length = len(content)
@@ -447,6 +448,9 @@ async def world(ctx, arg):
                                 bool1 = True
                                 versionName1 = versionName
                                 worldName1 = worldName
+                            else:
+                                await ctx.send("There is no world with that name")
+                                return
     #Changing info in file to new info
     if bool1 == True:
         changedContent = content
@@ -478,12 +482,14 @@ async def world(ctx, arg):
                 m('World file not found')
         savesList = os.listdir(r"./saves")
         for count4 in range(len(savesList)):
-            if worldName in savesList[count4]:
-                   worldName = savesList[count4]
+            if worldinput in savesList[count4]:
+                   zipName = savesList[count4]
             else:
                 pass
-        z = zipfile.ZipFile(r"./saves/"+worldName)
+        
+        z = zipfile.ZipFile(r"./saves/"+zipName)
         worldName = getWorld(z)
+        os.remove(r"./saves/"+zipName)
         for name in z.namelist():
                 z.extract(name)
 #Regenerate
