@@ -503,7 +503,7 @@ async def world(ctx, arg):
         worldName = getWorld(z)
         os.remove(r"./saves/"+zipName)
         for name in z.namelist():
-                z.extract(name)
+            z.extract(name)
 #Generate
 @client.command()
 async def generate(ctx):
