@@ -432,9 +432,9 @@ async def world(ctx, arg):
     bool1 = False
     zipName = ""
     content = fileName.readlines()
-    print(content)
+    #print(content)
     length = len(content)
-    print(length)
+    #print(length)
     fileName.close()
     worldInput = str(arg)
     for count1 in range(length):
@@ -445,7 +445,7 @@ async def world(ctx, arg):
             #Finding world area
             if content[count1 + 1] == "Worlds:\n":
                 worldIndex = content.index("Worlds:\n")
-                print(worldIndex)
+                #print(worldIndex)
                 #Getting worlds
                 for inCount in range(worldIndex,length):
                     for inCount1 in range(len(content[inCount])):
@@ -454,16 +454,15 @@ async def world(ctx, arg):
                             lengthContent = len(newContent)
                             worldName = newContent[0:inCount1]
                             versionName = newContent[inCount1+1:lengthContent]
-                            print(worldName)
+                            #print(worldName)
                             if worldInput.lower() in worldName.lower():
-                                print(worldInput,worldName)
+                                #print(worldInput,worldName)
                                 await ctx.send("Loading...")
-                                print(versionName)
+                                #print(versionName)
                                 bool1 = True
                                 versionName1 = versionName
                                 worldName1 = worldName
-                                worldName = content[0]
-                                m(worldName)
+                                worldName = content[0][:-1]
                                 break
                     if bool1:
                         break
@@ -473,12 +472,12 @@ async def world(ctx, arg):
         changedContent = content
         for count2 in range(2):
             changedContent.pop(0)
-        print(versionName1)
+        #print(versionName1)
         changedContent.insert(0,worldName1+"\n")
         changedContent.insert(1,versionName1)
         outContent = changedContent
-        print(worldName1)
-        print(outContent)
+        #print(worldName1)
+        #print(outContent)
         """
         fileName = open(r"versions.txt", "w")
         for count3 in range(len(outContent)):
@@ -494,24 +493,29 @@ async def world(ctx, arg):
         if msg.content.lower() in yesAnswers:
             await ctx.send('Saving...')
             saveWorld()
-            try:
-                shutil.rmtree(fr'{worldName}/')
-            except:
-                m('World file not found')
+        try:
+            shutil.rmtree(fr'{worldName}/')
+        except:
+            m('World file not found')
         savesList = os.listdir(r"./saves")
         for count4 in range(len(savesList)):
             if worldInput.lower() in savesList[count4].lower():
                 zipName = savesList[count4]
             else:
                 pass
-        
-        z = zipfile.ZipFile(r"./saves/"+zipName)
-        worldName = getWorld(z)
-        for name in z.namelist():
-            z.extract(name)
-        z.close()
-        os.remove(r"./saves/"+zipName)
-        open('versions.txt','wt').write(''.join(outContent)).close()
+        try:
+            z = zipfile.ZipFile("saves/"+zipName)
+            worldName = getWorld(z)
+            for name in z.namelist():
+                z.extract(name)
+            os.remove("./saves/"+zipName)
+        except PermissionError:
+            m('Zip file not found')
+        for i in range(len(propFile)):
+            if 'level-name=' in propFile[i]:
+                propFile[i] = 'level-name=' + worldName + '\n'
+        open('server.properties','wt').write(''.join(propFile))
+        open('versions.txt','wt').write(''.join(outContent))
         await ctx.send('Success!')
     else:
         await ctx.send("There is no world with that name")
