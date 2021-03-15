@@ -467,6 +467,7 @@ async def world(ctx, arg):
                                 versionName1 = versionName
                                 worldName1 = worldName
                                 worldName = content[0][:-1]
+                                version = content[1][:-1]
                                 break
                     if bool1:
                         break
@@ -488,16 +489,17 @@ async def world(ctx, arg):
         if msg.content.lower() in yesAnswers:
             await ctx.send('Saving...')
             saveWorld()
+
         try:
             shutil.rmtree(fr'{worldName}/')
         except:
             m('World file not found')
+
         savesList = os.listdir(r"./saves")
         for count4 in range(len(savesList)):
             if worldInput.lower() in savesList[count4].lower():
                 zipName = savesList[count4]
-            else:
-                pass
+        
         try:
             z = zipfile.ZipFile("saves/"+zipName)
             worldName = getWorld(z)
@@ -506,13 +508,20 @@ async def world(ctx, arg):
             os.remove("./saves/"+zipName)
         except PermissionError:
             m('Zip file not found')
+
         for i in range(len(propFile)):
             if 'level-name=' in propFile[i]:
                 propFile[i] = 'level-name=' + worldName + '\n'
+        version = versionName[:-1]
+        m(worldName + '=' + version + '\n')
+        m(''.join(outContent))
+        outContent.remove(worldName + '=' + version + '\n')
+
         outContent2 = [worldName+"\n" , "*.zip\n", ".gitignore\n", "server.properties\n", "versions.txt\n"]
         fileHandle1 = open(r".gitignore","w")
         fileHandle1.writelines(outContent2)
         fileHandle1.close()
+
         open('server.properties','wt').write(''.join(propFile))
         open('versions.txt','wt').write(''.join(outContent))
         await ctx.send('Success!')
