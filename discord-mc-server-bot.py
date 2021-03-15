@@ -454,16 +454,19 @@ async def world(ctx, arg):
                             worldName = newContent[0:inCount1]
                             versionName = newContent[inCount1+1:lengthContent]
                             print(worldName)
-                            if worldInput == worldName:
+                            if worldInput.lower() in worldName.lower():
                                 print(worldInput,worldName)
                                 await ctx.send("Loading...")
                                 print(versionName)
                                 bool1 = True
                                 versionName1 = versionName
                                 worldName1 = worldName
-                            else:
-                                await ctx.send("There is no world with that name")
-                                return
+                                worldName = content[0]
+                                m(worldName)
+                                break
+                    if bool1:
+                        break
+                            
     #Changing info in file to new info
     if bool1 == True:
         changedContent = content
@@ -475,12 +478,14 @@ async def world(ctx, arg):
         outContent = changedContent
         print(worldName1)
         print(outContent)
+        """
         fileName = open(r"versions.txt", "w")
         for count3 in range(len(outContent)):
             out1 = outContent[count3]
             out1 = str(out1)
             fileName.write(out1)
         fileName.close()
+        """
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
 
         await ctx.send('Would you like to save ' + worldName + '?')
@@ -494,16 +499,21 @@ async def world(ctx, arg):
                 m('World file not found')
         savesList = os.listdir(r"./saves")
         for count4 in range(len(savesList)):
-            if worldinput in savesList[count4]:
-                   zipName = savesList[count4]
+            if worldInput.lower() in savesList[count4].lower():
+                zipName = savesList[count4]
             else:
                 pass
         
         z = zipfile.ZipFile(r"./saves/"+zipName)
         worldName = getWorld(z)
-        os.remove(r"./saves/"+zipName)
         for name in z.namelist():
             z.extract(name)
+        z.close()
+        os.remove(r"./saves/"+zipName)
+        open('versions.txt','wt').write(''.join(outContent)).close()
+        await ctx.send('Success!')
+    else:
+        await ctx.send("There is no world with that name")
 #Generate
 @client.command()
 async def generate(ctx):
