@@ -482,14 +482,6 @@ async def world(ctx, arg):
         outContent = changedContent
         #print(worldName1)
         #print(outContent)
-        """
-        fileName = open(r"versions.txt", "w")
-        for count3 in range(len(outContent)):
-            out1 = outContent[count3]
-            out1 = str(out1)
-            fileName.write(out1)
-        fileName.close()
-        """
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
 
         await ctx.send('Would you like to save ' + worldName + '?')
