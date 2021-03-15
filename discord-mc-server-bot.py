@@ -483,9 +483,10 @@ async def world(ctx, arg):
         #print(worldName1)
         #print(outContent)
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
-        outContent2 = [worldName , "*.zip"]
+        outContent2 = [worldName+"\n" , "*.zip"]
         fileHandle1 = open(r".gitignore","w")
         fileHandle1.writelines(outContent2)
+        fileHandle1.close()
         await ctx.send('Would you like to save ' + worldName + '?')
         msg = await client.wait_for('message', check=lambda message: message.author == ctx.author)
         if msg.content.lower() in yesAnswers:
