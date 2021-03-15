@@ -428,6 +428,7 @@ async def botversion(ctx):
 async def world(ctx, arg):
 #Take content out of file
     fileName = open(r"versions.txt", "r")
+    propFile = open('server.properties','rt').readlines()
     bool1 = False
     zipName = ""
     content = fileName.readlines()
