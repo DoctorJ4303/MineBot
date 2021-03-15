@@ -1,1 +1,5 @@
+Parkour Stairs
 *.zip
+.gitignore
+server.properties
+versions.txt
