@@ -196,29 +196,33 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 # General
+
+#Start
 @help.command(aliases=['votestart'])
 async def start(ctx):
     embed = discord.Embed(title='Start', description=('Vote to start the server, you need ' + str(minPlayers) + ' vote(s) to start the server'), color=ctx.author.color)
     embed.add_field(name='Aliases', value='votestart')
     await ctx.send(embed=embed)
-
+#Cancel
 @help.command(aliases=['cancelvote'])
 async def cancel(ctx):
     embed = discord.Embed(title='Cancel', description=('Removes your vote to start the server, you need ' + str(minPlayers) + ' vote(s) to start the server'), color=ctx.author.color)
     embed.add_field(name='Aliases', value='cancelvote')
     await ctx.send(embed=embed)
-
+#Say
 @help.command()
 async def say(ctx):
     embed = discord.Embed(title='Say', description=('Says a message in minecraft chat'), color=ctx.author.color)
     await ctx.send(embed=embed)
-
+#Voted
 @help.command(aliases=['votedplayers'])
 async def voted(ctx):
     embed = discord.Embed(title='Voted', description=('Gets a list of all voted players'), color=ctx.author.color)
     embed.add_field(name='Aliases', value='votedplayers')
     await ctx.send(embed=embed)
-    
+
+# World
+
 #Map
 @help.command()
 async def map(ctx):
