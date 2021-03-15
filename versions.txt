@@ -1,5 +1,5 @@
-Parkour Stairs
-1.16.5
+Infested Lands CTM
+1.8.9
 ------
 Versions:
 1.8.9
@@ -14,5 +14,4 @@ Versions:
 ------
 Worlds:
 Vacant Void 2=1.16.5
-Infested Lands CTM=1.8.9
 Parkour Stairs=1.16.5
