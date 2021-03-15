@@ -196,29 +196,33 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 # General
+
+#Start
 @help.command(aliases=['votestart'])
 async def start(ctx):
     embed = discord.Embed(title='Start', description=('Vote to start the server, you need ' + str(minPlayers) + ' vote(s) to start the server'), color=ctx.author.color)
     embed.add_field(name='Aliases', value='votestart')
     await ctx.send(embed=embed)
-
+#Cancel
 @help.command(aliases=['cancelvote'])
 async def cancel(ctx):
     embed = discord.Embed(title='Cancel', description=('Removes your vote to start the server, you need ' + str(minPlayers) + ' vote(s) to start the server'), color=ctx.author.color)
     embed.add_field(name='Aliases', value='cancelvote')
     await ctx.send(embed=embed)
-
+#Say
 @help.command()
 async def say(ctx):
     embed = discord.Embed(title='Say', description=('Says a message in minecraft chat'), color=ctx.author.color)
     await ctx.send(embed=embed)
-
+#Voted
 @help.command(aliases=['votedplayers'])
 async def voted(ctx):
     embed = discord.Embed(title='Voted', description=('Gets a list of all voted players'), color=ctx.author.color)
     embed.add_field(name='Aliases', value='votedplayers')
     await ctx.send(embed=embed)
-    
+
+# World
+
 #Map
 @help.command()
 async def map(ctx):
@@ -478,14 +482,6 @@ async def world(ctx, arg):
         outContent = changedContent
         #print(worldName1)
         #print(outContent)
-        """
-        fileName = open(r"versions.txt", "w")
-        for count3 in range(len(outContent)):
-            out1 = outContent[count3]
-            out1 = str(out1)
-            fileName.write(out1)
-        fileName.close()
-        """
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
         outContent2 = [worldName , "*.zip"]
         fileHandle1 = open(r".gitignore","w")
