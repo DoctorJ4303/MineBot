@@ -1,4 +1,4 @@
-The Shadow RPG 2
+Parkour Stairs
 1.16.5
 ------
 Versions:
@@ -14,6 +14,5 @@ Versions:
 ------
 Worlds:
 Vacant Void 2=1.16.5
-The Shadow RPG 2=1.16.5
 Infested Lands CTM=1.8.9
 Parkour Stairs=1.16.5
