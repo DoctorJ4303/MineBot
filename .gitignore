@@ -1,5 +1,5 @@
 Vacant Void 2
-*.zip
 .gitignore
 server.properties
 versions.txt
+*.zip
