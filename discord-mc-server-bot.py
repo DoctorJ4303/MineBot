@@ -505,6 +505,7 @@ async def world(ctx, arg):
             worldName = getWorld(z)
             for name in z.namelist():
                 z.extract(name)
+            z.close()
             os.remove("./saves/"+zipName)
         except PermissionError:
             m('Zip file not found')
