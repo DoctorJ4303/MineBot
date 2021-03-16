@@ -1,5 +1,5 @@
-Vacant Void 2
-1.16.5
+1.8
+1.8.9
 ------
 Versions:
 1.8.9
@@ -13,4 +13,3 @@ Versions:
 1.16.5
 ------
 Worlds:
-Parkour Stairs=1.16.5
