@@ -96,7 +96,7 @@ async def stopServer():
     server.kill()
 #Zipdir
 def zipdir(path, ziph):
-    for root, files in os.walk(worldName):
+    for root, dirs, files in os.walk(worldName):
         for file in files:
             ziph.write(os.path.join(root, file))
 #Download World
@@ -164,8 +164,14 @@ def saveWorld():
     zipf = zipfile.ZipFile('saves/' + worldName + '_' + version + '_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.zip', 'w')
     zipdir(worldName + '/', zipf)
     zipf.close()
-    with open('versions.txt', 'at') as f:
-        f.write('\n' + worldName + '=' + version)
+    #vContent = open('versions.txt','rt').readlines()
+    #vContent.append(worldName + version + '\n')
+    vFile = open('versions.txt', 'r')
+    vFileContent = vFile.readlines()
+    vFileContent.append(worldName + '=' + version + '\n')
+    vFile = open('versions.txt', 'w')
+    vFile.writelines(vFileContent)
+    #m(''.join(vContent))
 
 ##########
 # Events #
@@ -177,12 +183,12 @@ async def on_ready():
     checkPlayers.start()
     m("Bot is up!")
 #Command Error
-@client.event
-async def on_command_error(ctx, error):
-    if not isinstance(error, commands.CheckFailure):
-        print(error)
-        await ctx.message.add_reaction('❗')
-        await ctx.send("Invalid command")
+#@client.event
+#async def on_command_error(ctx, error):
+#    if not isinstance(error, commands.CheckFailure):
+#        print(error)
+#        await ctx.message.add_reaction('❗')
+#        await ctx.send("Invalid command")
         
 #################
 # Help Commands #
@@ -518,7 +524,7 @@ async def world(ctx, arg):
         m(''.join(outContent))
         outContent.remove(worldName + '=' + version + '\n')
 
-        outContent2 = [worldName+"\n" , "*.zip\n", ".gitignore\n", "server.properties\n", "versions.txt\n"]
+        outContent2 = [worldName+"\n" , "saves\n", "server.properties\n", "versions.txt\n"]
         fileHandle1 = open(r".gitignore","w")
         fileHandle1.writelines(outContent2)
         fileHandle1.close()
