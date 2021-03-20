@@ -1,4 +1,4 @@
-scriptVersion = '1.2.5'
+scriptVersion = '1.2.6'
 # Thanks to nickbrooking for the mc-server code
 import discord
 import threading
@@ -544,90 +544,92 @@ async def generate(ctx):
     global version
     global worldName
     global server
-    yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
-    worldTypes = ['largeBiomes', 'default', 'amplified', 'superflat']
-    foundVersion = False
-    typeFound = False
-    await ctx.send('Would you like to save ' + worldName + '?')
-    answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-    if answer.content.lower() in yesAnswers:
-        await ctx.send('Saving...')
-        saveWorld()
-    try:
-        shutil.rmtree(fr'{worldName}/')
-    except:
-        m('World file not found')
+    if serverStopped:
+        yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
+        worldTypes = ['largeBiomes', 'default', 'amplified', 'superflat']
+        foundVersion = False
+        typeFound = False
+        await ctx.send('Would you like to save ' + worldName + '?')
+        answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+        if answer.content.lower() in yesAnswers:
+            await ctx.send('Saving...')
+            saveWorld()
+        try:
+            shutil.rmtree(fr'{worldName}/')
+        except:
+            m('World file not found')
 
-    propFile = open('server.properties', 'rt').readlines()
-    verFile = open('versions.txt', 'rt').readlines()
+        propFile = open('server.properties', 'rt').readlines()
+        verFile = open('versions.txt', 'rt').readlines()
 
-    await ctx.send('What is the seed of your new world seed (optional)')
-    try:
-        levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=5)
-        for i in range(len(propFile)):
-            if 'level-seed=' in propFile[i]:
-                propFile[i] = 'level-seed=' + levelSeed.content + '\n'
-    except asyncio.exceptions.TimeoutError:
-        for i in range(len(propFile)):
-            if 'level-seed=' in propFile[i]:
-                propFile[i] = 'level-seed=\n'
-
-    await ctx.send('What type of world do you want? default, superflat, amplified, large biomes')
-    levelType = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-    for t in worldTypes:
-        if t.lower() in removeSpaces(levelType.content.lower()):
+        await ctx.send('What is the seed of your new world seed (optional)')
+        try:
+            levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=5)
             for i in range(len(propFile)):
-                if 'level-type=' in propFile[i]:
-                    propFile[i] = 'level-type=' + t + '\n'
-                    typeFound = True
+                if 'level-seed=' in propFile[i]:
+                    propFile[i] = 'level-seed=' + levelSeed.content + '\n'
+        except asyncio.exceptions.TimeoutError:
+            for i in range(len(propFile)):
+                if 'level-seed=' in propFile[i]:
+                    propFile[i] = 'level-seed=\n'
+
+        await ctx.send('What type of world do you want? default, superflat, amplified, large biomes')
+        levelType = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+        for t in worldTypes:
+            if t.lower() in removeSpaces(levelType.content.lower()):
+                for i in range(len(propFile)):
+                    if 'level-type=' in propFile[i]:
+                        propFile[i] = 'level-type=' + t + '\n'
+                        typeFound = True
+                        break
+        if not typeFound:
+            await ctx.send('Invalid type!')
+            return
+
+        await ctx.send('What is the name of the new world?')
+        levelName = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+        for i in range(len(propFile)):
+            if 'level-name=' in propFile[i]:
+                propFile[i] = 'level-name=' + levelName.content + '\n'
+
+        await ctx.send('What is the version of ' + levelName.content)
+        worldVersion = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+        for v in versions:
+            if v in worldVersion.content:
+                for jar in os.listdir('./versions'):
+                    if v in str(jar):
+                        foundVersion = True
+                        serverDir = 'versions/' + str(jar)
+                        version = str(jar)[:-4]
+                        break
+        if not foundVersion:
+            await ctx.send('Invalid version!')
+
+        if foundVersion and typeFound:
+            await ctx.send('Loading...')
+            worldName = levelName.content
+            verFile[0] = worldName + '\n'
+            verFile[1] = version + '\n'
+            open('versions.txt', 'wt').write(''.join(verFile))
+            open('server.properties', 'wt').write(''.join(propFile))
+            server = subprocess.Popen(f'java -Xmx{ramAlloc}m -Xms{ramAlloc}m -jar '+ serverDir + ' nogui', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+            while True:
+                line = server.stdout.readline()
+                if 'Done' in line.decode():
+                    c('stop')
+                    await asyncio.sleep(10)
+                    server.kill()
                     break
-    if not typeFound:
-        await ctx.send('Invalid type!')
-        return
 
-    await ctx.send('What is the name of the new world?')
-    levelName = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-    for i in range(len(propFile)):
-        if 'level-name=' in propFile[i]:
-            propFile[i] = 'level-name=' + levelName.content + '\n'
-
-    await ctx.send('What is the version of ' + levelName.content)
-    worldVersion = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-    for v in versions:
-        if v in worldVersion.content:
-            for jar in os.listdir('./versions'):
-                if v in str(jar):
-                    foundVersion = True
-                    serverDir = 'versions/' + str(jar)
-                    version = str(jar)[:-4]
-                    break
-    if not foundVersion:
-        await ctx.send('Invalid version!')
-
-    if foundVersion and typeFound:
-        await ctx.send('Loading...')
-        worldName = levelName.content
-        verFile[0] = worldName + '\n'
-        verFile[1] = version + '\n'
-        open('versions.txt', 'wt').write(''.join(verFile))
-        open('server.properties', 'wt').write(''.join(propFile))
-        server = subprocess.Popen(f'java -Xmx{ramAlloc}m -Xms{ramAlloc}m -jar '+ serverDir + ' nogui', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-        while True:
-            line = server.stdout.readline()
-            if 'Done' in line.decode():
-                c('stop')
-                serverStopped = True
-                await asyncio.sleep(10)
-                server.kill()
-                break
-
-        gitFileContent = open('.gitignore', 'r').readlines()
-        with open('.gitignore', 'wt') as gitFile:
-            gitFileContent.pop(0)
-            gitFileContent.insert(0, worldName + '\n')
-            gitFile.writelines(gitFileContent)
-        
-        await ctx.send('Success in generating ' + worldName + '!')
+            gitFileContent = open('.gitignore', 'r').readlines()
+            with open('.gitignore', 'wt') as gitFile:
+                gitFileContent.pop(0)
+                gitFileContent.insert(0, worldName + '\n')
+                gitFile.writelines(gitFileContent)
+            
+            await ctx.send('Success in generating ' + worldName + '!')
+    else:
+        await ctx.send('You cannot change the world when the server is up!')
 
 @client.command()
 async def properties(ctx):
