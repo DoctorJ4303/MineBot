@@ -211,7 +211,7 @@ async def on_ready():
 async def help(ctx):
     embed = discord.Embed(title='Help', description='Use .help <command> for more info on a command', color=ctx.author.color)
     embed.add_field(name='General', value='start, cancel, say, voted')
-    embed.add_field(name='World', value='world, worlds, map,\n regen, properties')
+    embed.add_field(name='World', value='world, worlds, map,\nregen, properties')
     await ctx.send(embed=embed)
 
 # General
@@ -431,26 +431,18 @@ async def saved_worlds(ctx):
     savedWorlds = []
     savedVersions = []
     e = discord.Embed(title='Saved Worlds', description='', color=ctx.author.color)
-    
-    for savedWorld in os.listdir('./saves'):
-        for zipFile in savedWorld:
-            for v in versions:
-                if '_' + v in str(savedWorld):
-                    for jar in os.listdir('./versions'):
-                        if v in str(jar):
-                            savedVersions.append(str(jar)[:-4])
-                            break
-                    for i in range(len(savedWorld)):
-                        print(savedWorld[i:i+len(v)+1])
-                        if zipFile[i:i+len(v)+1] == '_' + v:
-                            savedWorlds.append(str(savedWorld)[0:i])
-                            break
-    
-    worldValue = str(''.join(savedWorlds))
-    versionValue = str(''.join(savedVersions))
-    e.add_field(name='Worlds', value=worldValue)
-    e.add_field(name='Versions', value=versionValue)
+    vFileContent = open('versions.txt', 'r').readlines()
+    for i in range(len(vFileContent)):
+        if vFileContent[i] == 'Worlds:\n':
+            for j in range(i+1, len(vFileContent)):
+                for k in range(len(vFileContent[j])):
+                    if vFileContent[j][k] == '=':
+                        savedWorlds.append(vFileContent[j][0:k] + '\n')
+                        savedVersions.append(vFileContent[j][k+1:])
+    e.add_field(name='World Name', value=''.join(savedWorlds))
+    e.add_field(name='Version', value=''.join(savedVersions))
     await ctx.send(embed=e)
+
 #Bot Version
 @client.command(aliases=['botVersion','scriptversion','scriptVersion'])
 async def botversion(ctx):
