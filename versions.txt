@@ -1,5 +1,5 @@
-1.16
-1.15.2
+World 2
+1.13.2
 ------
 Versions:
 1.8.9
@@ -14,3 +14,5 @@ Versions:
 ------
 Worlds:
 Parkour Stairs=1.16.5
+1.16=1.15.2
+World 1=1.16.5
