@@ -174,17 +174,6 @@ def saveWorld():
     zipf.close()
     with open('versions.txt', 'at') as vFile:
         vFile.write(worldName + '=' + version + '\n')
-    """
-    vFile = open('versions.txt', 'r')
-    vFileContent = vFile.readlines()
-    vFileContent.append(worldName + '=' + version + '\n')
-    vFile = open('versions.txt','w')
-    vFile.close()
-    with open('versions.txt','at') as vFile:
-        for line in vFileContent:
-            vFile.write(line)
-    """
-    
 
 ##########
 # Events #
@@ -196,12 +185,12 @@ async def on_ready():
     checkPlayers.start()
     m("Bot is up!")
 #Command Error
-#@client.event
-#async def on_command_error(ctx, error):
-#    if not isinstance(error, commands.CheckFailure):
-#        print(error)
-#        await ctx.message.add_reaction('❗')
-#        await ctx.send("Invalid command")
+@client.event
+async def on_command_error(ctx, error):
+    if not isinstance(error, commands.CheckFailure):
+        print(error)
+        await ctx.message.add_reaction('❗')
+        await ctx.send("Invalid command")
         
 #################
 # Help Commands #
@@ -554,6 +543,7 @@ async def generate(ctx):
     global serverDir
     global version
     global worldName
+    global server
     yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
     worldTypes = ['largeBiomes', 'default', 'amplified', 'superflat']
     foundVersion = False
@@ -608,18 +598,35 @@ async def generate(ctx):
             for jar in os.listdir('./versions'):
                 if v in str(jar):
                     foundVersion = True
-                    serverDir = str(jar)
-                    version = serverDir[:-4]
+                    serverDir = 'versions/' + str(jar)
+                    version = str(jar)[:-4]
                     break
     if not foundVersion:
         await ctx.send('Invalid version!')
 
     if foundVersion and typeFound:
+        await ctx.send('Loading...')
         worldName = levelName.content
         verFile[0] = worldName + '\n'
         verFile[1] = version + '\n'
         open('versions.txt', 'wt').write(''.join(verFile))
         open('server.properties', 'wt').write(''.join(propFile))
+        server = subprocess.Popen(f'java -Xmx{ramAlloc}m -Xms{ramAlloc}m -jar '+ serverDir + ' nogui', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+        while True:
+            line = server.stdout.readline()
+            if 'Done' in line.decode():
+                c('stop')
+                serverStopped = True
+                await asyncio.sleep(10)
+                server.kill()
+                break
+
+        gitFileContent = open('.gitignore', 'r').readlines()
+        with open('.gitignore', 'wt') as gitFile:
+            gitFileContent.pop(0)
+            gitFileContent.insert(0, worldName + '\n')
+            gitFile.writelines(gitFileContent)
+        
         await ctx.send('Success in generating ' + worldName + '!')
 
 @client.command()
