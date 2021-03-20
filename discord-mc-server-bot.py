@@ -28,6 +28,7 @@ TOKEN = "ODA2NTYyOTcxNjU5OTI3NTc5.YBrQTQ.r0OwAwJojSoR0xzTdFlb8pzj-Oo"
 worldName = str(open('versions.txt','rt').readlines()[0][0:-1])   
 serverDir = 'versions\\' + str(open('versions.txt','rt').readlines()[1][0:-1]) + '.jar'
 version = str(open('versions.txt','rt').readlines()[1][0:-1])
+versions = ['1.16','1.15','1.14','1.13','1.12','1.11','1.10','1.9','1.8']
 minPlayers = 1
 votedPlayers = []
 server = ''
@@ -78,11 +79,19 @@ def removeSpaces(s):
 async def startServer(ctx):
     global server
     global serverStopped
-    
-    m('Starting server...')
-    server = subprocess.Popen(f'java -Xmx{ramAlloc}m -Xms{ramAlloc}m -jar '+ serverDir + ' nogui', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-    b = threading.Thread(name='backround', target=printLog)
     serverStopped = False
+
+    m('Starting server...')
+
+    server = subprocess.Popen(f'java -Xmx{ramAlloc}m -Xms{ramAlloc}m -jar '+ serverDir + ' nogui', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+
+    gitFileContent = open('.gitignore', 'r').readlines()
+    with open('.gitignore', 'wt') as gitFile:
+        gitFileContent.pop(0)
+        gitFileContent.insert(0, worldName + '\n')
+        gitFile.writelines(gitFileContent)
+
+    b = threading.Thread(name='backround', target=printLog)
     b.start()
 #Stop Server
 async def stopServer():
@@ -139,7 +148,6 @@ def getVersion(ctx, arg):
     global worldName
     global version
     lines = []
-    versions = ['1.16','1.15','1.14','1.13','1.12','1.11','1.10','1.9','1.8']
     htmlText = html2text.html2text(str(requests.get(str(arg)).text))
     html2text.HTML2Text().ignore_links = True
     for i in range(len(htmlText)):
@@ -164,14 +172,19 @@ def saveWorld():
     zipf = zipfile.ZipFile('saves/' + worldName + '_' + version + '_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.zip', 'w')
     zipdir(worldName + '/', zipf)
     zipf.close()
-    #vContent = open('versions.txt','rt').readlines()
-    #vContent.append(worldName + version + '\n')
+    with open('versions.txt', 'at') as vFile:
+        vFile.write(worldName + '=' + version + '\n')
+    """
     vFile = open('versions.txt', 'r')
     vFileContent = vFile.readlines()
     vFileContent.append(worldName + '=' + version + '\n')
-    vFile = open('versions.txt', 'w')
-    vFile.writelines(vFileContent)
-    #m(''.join(vContent))
+    vFile = open('versions.txt','w')
+    vFile.close()
+    with open('versions.txt','at') as vFile:
+        for line in vFileContent:
+            vFile.write(line)
+    """
+    
 
 ##########
 # Events #
@@ -413,22 +426,31 @@ async def map(ctx, arg):
 #Saved Worlds
 @client.command(aliases=['savedworlds','worlds'])
 async def saved_worlds(ctx):
+    global serverDir
+    global version
     savedWorlds = []
     savedVersions = []
-    embed = discord.Embed(title='Saved Worlds', description='', color=ctx.author.color)
-    for files in os.listdir('./saves'):
-        for fileName in files:
-            for i in range(len(fileName)):
-                if fileName[i] == '_':
-                    savedWorlds.append(fileName[0:i] + '\n')
-                    for j in range(9):
-                        if fileName[j+i+1] == '_':
-                            savedVersions.append(fileName[i+1:j+i+1] + '\n')
+    e = discord.Embed(title='Saved Worlds', description='', color=ctx.author.color)
+    
+    for savedWorld in os.listdir('./saves'):
+        for zipFile in savedWorld:
+            for v in versions:
+                if '_' + v in str(savedWorld):
+                    for jar in os.listdir('./versions'):
+                        if v in str(jar):
+                            savedVersions.append(str(jar)[:-4])
                             break
-                    break
-    embed.add_field(name='Worlds', value=''.join(savedWorlds))
-    embed.add_field(name='Versions', value=''.join(savedVersions))
-    await ctx.send(embed=embed)
+                    for i in range(len(savedWorld)):
+                        print(savedWorld[i:i+len(v)+1])
+                        if zipFile[i:i+len(v)+1] == '_' + v:
+                            savedWorlds.append(str(savedWorld)[0:i])
+                            break
+    
+    worldValue = str(''.join(savedWorlds))
+    versionValue = str(''.join(savedVersions))
+    e.add_field(name='Worlds', value=worldValue)
+    e.add_field(name='Versions', value=versionValue)
+    await ctx.send(embed=e)
 #Bot Version
 @client.command(aliases=['botVersion','scriptversion','scriptVersion'])
 async def botversion(ctx):
@@ -541,13 +563,9 @@ async def generate(ctx):
     global version
     global worldName
     yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
-    versions = ['1.16','1.15','1.14','1.13','1.12','1.11','1.10','1.9','1.8']
     worldTypes = ['largeBiomes', 'default', 'amplified', 'superflat']
-    propFile = open('server.properties', 'rt').readlines()
-    verFile = open('versions.txt', 'rt').readlines()
     foundVersion = False
     typeFound = False
-
     await ctx.send('Would you like to save ' + worldName + '?')
     answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
     if answer.content.lower() in yesAnswers:
@@ -557,6 +575,9 @@ async def generate(ctx):
         shutil.rmtree(fr'{worldName}/')
     except:
         m('World file not found')
+
+    propFile = open('server.properties', 'rt').readlines()
+    verFile = open('versions.txt', 'rt').readlines()
 
     await ctx.send('What is the seed of your new world seed (optional)')
     try:
