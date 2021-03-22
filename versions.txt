@@ -14,3 +14,4 @@ Versions:
 ------
 Worlds:
 World 7=1.16.5
+World 1=1.16.5
