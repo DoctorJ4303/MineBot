@@ -168,12 +168,12 @@ def getVersion(ctx, arg):
         for line in lines:
             f.write(line)
 #Save World
-def saveWorld():
-    zipf = zipfile.ZipFile('saves/' + worldName + '_' + version + '_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.zip', 'w')
-    zipdir(worldName + '/', zipf)
+def saveWorld(name: str):
+    zipf = zipfile.ZipFile('saves/' + name + '_' + version + '_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.zip', 'w')
+    zipdir(name + '/', zipf)
     zipf.close()
     with open('versions.txt', 'at') as vFile:
-        vFile.write(worldName + '=' + version + '\n')
+        vFile.write(name + '=' + version + '\n')
 
 ##########
 # Events #
@@ -185,12 +185,12 @@ async def on_ready():
     checkPlayers.start()
     m("Bot is up!")
 #Command Error
-@client.event
-async def on_command_error(ctx, error):
-    if not isinstance(error, commands.CheckFailure):
-        print(error)
-        await ctx.message.add_reaction('❗')
-        await ctx.send("Invalid command")
+#@client.event
+#async def on_command_error(ctx, error):
+#    if not isinstance(error, commands.CheckFailure):
+#        print(error)
+#        await ctx.message.add_reaction('❗')
+#        await ctx.send("Invalid command")
         
 #################
 # Help Commands #
@@ -394,7 +394,7 @@ async def map(ctx, arg):
         msg = await client.wait_for('message', check=lambda message: message.author == ctx.author)
         if msg.content.lower() in yesAnswers:
             await ctx.send('Saving...')
-            saveWorld()
+            saveWorld(worldName)
             try:
                 shutil.rmtree(fr'{worldName}/')
             except:
@@ -424,10 +424,8 @@ async def saved_worlds(ctx):
     for i in range(len(vFileContent)):
         if vFileContent[i] == 'Worlds:\n':
             for j in range(i+1, len(vFileContent)):
-                for k in range(len(vFileContent[j])):
-                    if vFileContent[j][k] == '=':
-                        savedWorlds.append(vFileContent[j][0:k] + '\n')
-                        savedVersions.append(vFileContent[j][k+1:])
+                savedWorlds.append(vFileContent[j].split('=')[0])
+                savedVersions.append(vFileContent[j].split('=')[1])
     e.add_field(name='World Name', value=''.join(savedWorlds))
     e.add_field(name='Version', value=''.join(savedVersions))
     await ctx.send(embed=e)
@@ -440,6 +438,7 @@ async def botversion(ctx):
 @client.command()
 async def world(ctx, arg):
 #Take content out of file
+    global worldName
     fileName = open(r"versions.txt", "r")
     propFile = open('server.properties','rt').readlines()
     bool1 = False
@@ -465,18 +464,15 @@ async def world(ctx, arg):
                         newContent = content[inCount]
                         if newContent[inCount1] == "=":
                             lengthContent = len(newContent)
-                            worldName = newContent[0:inCount1]
-                            versionName = newContent[inCount1+1:lengthContent]
+                            world = newContent[0:inCount1]
+                            version = newContent[inCount1+1:lengthContent-1]
                             #print(worldName)
-                            if worldInput.lower() in worldName.lower():
+                            if worldInput.lower() in world.lower():
                                 #print(worldInput,worldName)
-                                await ctx.send("Loading...")
                                 #print(versionName)
                                 bool1 = True
-                                versionName1 = versionName
-                                worldName1 = worldName
-                                worldName = content[0][:-1]
-                                version = content[1][:-1]
+                                worldName1 = content[0][:-1]
+                                versionName1 = content[1][:-1]
                                 break
                     if bool1:
                         break
@@ -487,53 +483,52 @@ async def world(ctx, arg):
         for count2 in range(2):
             changedContent.pop(0)
         #print(versionName1)
-        changedContent.insert(0,worldName1+"\n")
-        changedContent.insert(1,versionName1)
+        changedContent.insert(0,world+"\n")
+        changedContent.insert(1,version+"\n")
         outContent = changedContent
         #print(worldName1)
         #print(outContent)
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
-        await ctx.send('Would you like to save ' + worldName + '?')
+        await ctx.send('Would you like to save ' + worldName1 + '?')
         msg = await client.wait_for('message', check=lambda message: message.author == ctx.author)
         if msg.content.lower() in yesAnswers:
             await ctx.send('Saving...')
-            saveWorld()
-
-        try:
-            shutil.rmtree(fr'{worldName}/')
-        except:
-            m('World file not found')
-
-        savesList = os.listdir(r"./saves")
-        for count4 in range(len(savesList)):
-            if worldInput.lower() in savesList[count4].lower():
-                zipName = savesList[count4]
+            outContent.append(worldName1 + '=' + versionName1 + '\n')
+            saveWorld(worldName1)
         
         try:
+            shutil.rmtree(fr'{worldName1}/')
+        except:
+            m('World file not found')
+        outContent.remove(world + '=' + version + '\n')
+
+        savesList = os.listdir(r"./saves")
+        for i in range(len(savesList)):
+            if world == savesList[i].split('_')[0]:
+                zipName = savesList[i]
+                break
+
+        try:
             z = zipfile.ZipFile("saves/"+zipName)
-            worldName = getWorld(z)
             for name in z.namelist():
                 z.extract(name)
             z.close()
             os.remove("./saves/"+zipName)
-        except PermissionError:
+        except:
             m('Zip file not found')
 
         for i in range(len(propFile)):
             if 'level-name=' in propFile[i]:
-                propFile[i] = 'level-name=' + worldName + '\n'
-        version = versionName[:-1]
-        m(worldName + '=' + version + '\n')
-        m(''.join(outContent))
-        outContent.remove(worldName + '=' + version + '\n')
+                propFile[i] = 'level-name=' + world + '\n'
 
-        outContent2 = [worldName+"\n" , "saves\n", "server.properties\n", "versions.txt\n"]
-        fileHandle1 = open(r".gitignore","w")
-        fileHandle1.writelines(outContent2)
-        fileHandle1.close()
-
-        open('server.properties','wt').write(''.join(propFile))
-        open('versions.txt','wt').write(''.join(outContent))
+        gitignoreContent = open('.gitignore','r').readlines()
+        gitignoreContent.pop(0)
+        gitignoreContent.insert(0, world + '\n')
+        
+        worldName = world
+        open('.gitignore','wt').writelines(gitignoreContent)
+        open('server.properties','wt').writelines(propFile)
+        open('versions.txt','wt').writelines(outContent)
         await ctx.send('Success!')
     else:
         await ctx.send("There is no world with that name")
@@ -553,7 +548,7 @@ async def generate(ctx):
         answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
         if answer.content.lower() in yesAnswers:
             await ctx.send('Saving...')
-            saveWorld()
+            saveWorld(worldName)
         try:
             shutil.rmtree(fr'{worldName}/')
         except:
