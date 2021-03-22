@@ -1,5 +1,5 @@
-World 5
-logs
-server.properties
-versions.txt
-*.zip
+World 2/
+saves/
+logs/
+*.properties
+*.log
