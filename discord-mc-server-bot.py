@@ -93,6 +93,7 @@ async def startServer(ctx):
 
     b = threading.Thread(name='backround', target=printLog)
     b.start()
+
 #Stop Server
 async def stopServer():
     global server
@@ -200,7 +201,7 @@ async def on_ready():
 async def help(ctx):
     embed = discord.Embed(title='Help', description='Use .help <command> for more info on a command', color=ctx.author.color)
     embed.add_field(name='General', value='start, cancel, say, voted')
-    embed.add_field(name='World', value='world, worlds, map,\nregen, properties')
+    embed.add_field(name='World', value='world, savedworlds,\nmap, regen,\nproperties')
     await ctx.send(embed=embed)
 
 # General
@@ -240,6 +241,7 @@ async def map(ctx):
 @help.command(aliases=['savedworlds','worlds'])
 async def saved_worlds(ctx):
     embed = discord.Embed(title='Worlds', description=('Gets a list of all saved worlds'), color=ctx.author.color)
+    embed.add_field(name='Aliases', value='savedworlds, worlds')
     await ctx.send(embed=embed)
 #World
 @help.command()
@@ -424,7 +426,7 @@ async def saved_worlds(ctx):
     for i in range(len(vFileContent)):
         if vFileContent[i] == 'Worlds:\n':
             for j in range(i+1, len(vFileContent)):
-                savedWorlds.append(vFileContent[j].split('=')[0])
+                savedWorlds.append(vFileContent[j].split('=')[0] + '\n')
                 savedVersions.append(vFileContent[j].split('=')[1])
     e.add_field(name='World Name', value=''.join(savedWorlds))
     e.add_field(name='Version', value=''.join(savedVersions))
@@ -436,7 +438,7 @@ async def botversion(ctx):
     await ctx.send('Minecraft Server Bot is on version ' + scriptVersion)
 #World        
 @client.command()
-async def world(ctx, arg):
+async def world(ctx, *, args):
 #Take content out of file
     global worldName
     fileName = open(r"versions.txt", "r")
@@ -448,7 +450,7 @@ async def world(ctx, arg):
     length = len(content)
     #print(length)
     fileName.close()
-    worldInput = str(arg)
+    worldInput = str(''.join(args))
     for count1 in range(length):
         #finding barrier
         if content[count1] == "------\n":
@@ -466,7 +468,8 @@ async def world(ctx, arg):
                             lengthContent = len(newContent)
                             world = newContent[0:inCount1]
                             version = newContent[inCount1+1:lengthContent-1]
-                            #print(worldName)
+                            print(world)
+                            print(worldInput.lower())
                             if worldInput.lower() in world.lower():
                                 #print(worldInput,worldName)
                                 #print(versionName)
@@ -541,7 +544,7 @@ async def generate(ctx):
     global server
     if serverStopped:
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
-        worldTypes = ['largeBiomes', 'default', 'amplified', 'superflat']
+        worldTypes = ['largeBiomes', 'default', 'amplified', 'flat']
         foundVersion = False
         typeFound = False
         await ctx.send('Would you like to save ' + worldName + '?')
@@ -557,7 +560,7 @@ async def generate(ctx):
         propFile = open('server.properties', 'rt').readlines()
         verFile = open('versions.txt', 'rt').readlines()
 
-        await ctx.send('What is the seed of your new world seed (optional)')
+        await ctx.send('What is the seed of your new world (optional)')
         try:
             levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=5)
             for i in range(len(propFile)):
@@ -568,7 +571,7 @@ async def generate(ctx):
                 if 'level-seed=' in propFile[i]:
                     propFile[i] = 'level-seed=\n'
 
-        await ctx.send('What type of world do you want? default, superflat, amplified, large biomes')
+        await ctx.send('What type of world do you want? default, flat, amplified, large biomes')
         levelType = await client.wait_for('message', check=lambda message: message.author == ctx.author)
         for t in worldTypes:
             if t.lower() in removeSpaces(levelType.content.lower()):
@@ -612,7 +615,7 @@ async def generate(ctx):
                 line = server.stdout.readline()
                 if 'Done' in line.decode():
                     c('stop')
-                    await asyncio.sleep(10)
+                    await asyncio.sleep(5)
                     server.kill()
                     break
 
