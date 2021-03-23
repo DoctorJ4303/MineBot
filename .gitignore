@@ -2,3 +2,4 @@
 !.gitignore
 !discord-mc-server-bot.py
 !cogs
+!help-commands.py
