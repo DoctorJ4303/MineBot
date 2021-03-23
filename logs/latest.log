@@ -1,37 +1,21 @@
-[10:39:40] [main/INFO]: Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
-[10:39:41] [main/WARN]: Ambiguity between arguments [teleport, destination] and [teleport, targets] with inputs: [Player, 0123, @e, dd12be42-52a9-4a91-a8a1-11c01849e498]
-[10:39:41] [main/WARN]: Ambiguity between arguments [teleport, location] and [teleport, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
-[10:39:41] [main/WARN]: Ambiguity between arguments [teleport, location] and [teleport, targets] with inputs: [0.1 -0.5 .9, 0 0 0]
-[10:39:41] [main/WARN]: Ambiguity between arguments [teleport, targets] and [teleport, destination] with inputs: [Player, 0123, dd12be42-52a9-4a91-a8a1-11c01849e498]
-[10:39:41] [main/WARN]: Ambiguity between arguments [teleport, targets, location] and [teleport, targets, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
-[10:39:41] [main/INFO]: Reloading ResourceManager: Default
-[10:39:41] [Worker-Main-14/INFO]: Loaded 7 recipes
-[10:39:41] [Worker-Main-14/INFO]: Loaded 927 advancements
-[10:39:42] [Server thread/INFO]: Starting minecraft server version 1.16.5
-[10:39:42] [Server thread/INFO]: Loading properties
-[10:39:42] [Server thread/INFO]: Default game type: SURVIVAL
-[10:39:42] [Server thread/INFO]: Generating keypair
-[10:39:42] [Server thread/INFO]: Starting Minecraft server on *:25565
-[10:39:42] [Server thread/INFO]: Using default channel type
-[10:39:42] [Server thread/INFO]: Preparing level "World 2"
-[10:39:42] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
-[10:39:43] [Server thread/INFO]: Preparing spawn area: 0%
-[10:39:43] [Server thread/INFO]: Preparing spawn area: 0%
-[10:39:43] [Server thread/INFO]: Preparing spawn area: 0%
-[10:39:44] [Server thread/INFO]: Preparing spawn area: 92%
-[10:39:44] [Server thread/INFO]: Time elapsed: 2033 ms
-[10:39:44] [Server thread/INFO]: Done (2.102s)! For help, type "help"
-[10:39:45] [Server thread/INFO]: [Server] Server shutting down in 10 minutes
-[10:39:48] [Server thread/INFO]: Stopping the server
-[10:39:48] [Server thread/INFO]: Stopping server
-[10:39:48] [Server thread/INFO]: Saving players
-[10:39:48] [Server thread/INFO]: Saving worlds
-[10:39:48] [Server thread/INFO]: Saving chunks for level 'ServerLevel[World 2]'/minecraft:overworld
-[10:39:49] [Server thread/INFO]: ThreadedAnvilChunkStorage (World 2): All chunks are saved
-[10:39:49] [Server thread/INFO]: Saving chunks for level 'ServerLevel[World 2]'/minecraft:the_nether
-[10:39:49] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
-[10:39:49] [Server thread/INFO]: Saving chunks for level 'ServerLevel[World 2]'/minecraft:the_end
-[10:39:49] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
-[10:39:49] [Server thread/INFO]: ThreadedAnvilChunkStorage (World 2): All chunks are saved
-[10:39:49] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
-[10:39:49] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[15:51:06] [Server thread/INFO]: Starting minecraft server version 1.8.9
+[15:51:06] [Server thread/INFO]: Loading properties
+[15:51:06] [Server thread/INFO]: Default game type: SURVIVAL
+[15:51:06] [Server thread/INFO]: Generating keypair
+[15:51:06] [Server thread/INFO]: Starting Minecraft server on *:25565
+[15:51:06] [Server thread/INFO]: Using default channel type
+[15:51:06] [Server thread/INFO]: Preparing level "World 3"
+[15:51:06] [Server thread/INFO]: Preparing start region for level 0
+[15:51:07] [Server thread/INFO]: Preparing spawn area: 31%
+[15:51:08] [Server thread/INFO]: Preparing spawn area: 62%
+[15:51:09] [Server thread/INFO]: Preparing spawn area: 89%
+[15:51:10] [Server thread/INFO]: Done (3.867s)! For help, type "help" or "?"
+[15:51:10] [Server thread/INFO]: Stopping the server
+[15:51:10] [Server thread/INFO]: Stopping server
+[15:51:10] [Server thread/INFO]: Saving players
+[15:51:10] [Server thread/INFO]: Saving worlds
+[15:51:10] [Server thread/INFO]: Saving chunks for level 'World 3'/Overworld
+[15:51:11] [Server thread/INFO]: Saving chunks for level 'World 3'/Nether
+[15:51:11] [Server thread/INFO]: Saving chunks for level 'World 3'/The End
+[15:51:13] [Server Shutdown Thread/INFO]: Stopping server
+[15:51:13] [Server Shutdown Thread/INFO]: Saving players
