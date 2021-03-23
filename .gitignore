@@ -1,5 +1,2 @@
-World 2
-saves/
-logs/
-*.properties
-*.log
+*
+!discord-mc-server-bot.py
