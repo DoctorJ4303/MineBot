@@ -72,7 +72,6 @@ def removeSpaces(s):
     while i < len(s):
         if s[i] == ' ':
             s = s[0:i] + s[i+1:len(s)]
-            m(s)
         else:
             i+=1
     return s
@@ -374,14 +373,13 @@ async def botversion(ctx):
 async def world(ctx, *, args):
 #Take content out of file
     global worldName
+    global version
     fileName = open(r"versions.txt", "r")
     propFile = open('server.properties','rt').readlines()
     bool1 = False
     zipName = ""
     content = fileName.readlines()
-    #print(content)
     length = len(content)
-    #print(length)
     fileName.close()
     worldInput = str(''.join(args))
     for count1 in range(length):
@@ -392,21 +390,16 @@ async def world(ctx, *, args):
             #Finding world area
             if content[count1 + 1] == "Worlds:\n":
                 worldIndex = content.index("Worlds:\n")
-                #print(worldIndex)
-                #Getting worlds
+                #Getting world and version
                 for inCount in range(worldIndex,length):
                     for inCount1 in range(len(content[inCount])):
                         newContent = content[inCount]
                         if newContent[inCount1] == "=":
                             lengthContent = len(newContent)
                             world = newContent[0:inCount1]
-                            version = newContent[inCount1+1:lengthContent-1]
-                            print(world)
-                            print(worldInput.lower())
                             if worldInput.lower() in world.lower():
-                                #print(worldInput,worldName)
-                                #print(versionName)
                                 bool1 = True
+                                version = newContent[inCount1+1:lengthContent-1]
                                 worldName1 = content[0][:-1]
                                 versionName1 = content[1][:-1]
                                 break
@@ -418,12 +411,9 @@ async def world(ctx, *, args):
         changedContent = content
         for count2 in range(2):
             changedContent.pop(0)
-        #print(versionName1)
         changedContent.insert(0,world+"\n")
         changedContent.insert(1,version+"\n")
         outContent = changedContent
-        #print(worldName1)
-        #print(outContent)
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
         await ctx.send('Would you like to save ' + worldName1 + '?')
         msg = await client.wait_for('message', check=lambda message: message.author == ctx.author)
