@@ -1,4 +1,4 @@
 *
 !.gitignore
 !discord-mc-server-bot.py
-!/cogs/
+!cogs
