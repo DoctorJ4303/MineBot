@@ -1,20 +1,21 @@
 scriptVersion = '1.2.6'
 # Thanks to nickbrooking for the mc-server code
-import discord
-import threading
-import random
-import zipfile
-import requests
-import io
+import asyncio
 import datetime
+import io
 import os
+import random
 import shutil
 import subprocess
 import sys
-import urllib.request
-import asyncio
+import threading
 import time
+import urllib.request
+import zipfile
+
+import discord
 import html2text
+import requests
 from discord.ext import commands, tasks
 from discord.utils import get
 from mcstatus import MinecraftServer
@@ -34,7 +35,7 @@ votedPlayers = []
 server = ''
 serverStopped = True
 shuttingDown = False
-client = commands.Bot(command_prefix='.')
+client = commands.Bot(command_prefix='mc.')
 client.remove_command('help')
 
 ##################    
@@ -258,17 +259,12 @@ async def start(ctx):
     global scriptVersion
     global serverStopped
     global votedPlayers
-    playerVoted = False
     players = []
     if serverStopped:
-        for player in votedPlayers:
-            if serverStopped and player == ctx.message.author:
-                playerVoted = True
-                await ctx.send('You have already voted.')
-                break
-        if not playerVoted and serverStopped:
-            votedPlayers.append(ctx.message.author)
-            players = []
+        if ctx.author in votedPlayers:
+            await ctx.send('You have already voted!')
+        else:
+            votedPlayers.append(ctx.author)
             for player in votedPlayers:
                 if player.nick == None:
                     players.append(removeFancy(str(player))[0:-5] + '\n')
@@ -363,7 +359,6 @@ async def saved_worlds(ctx):
     e.add_field(name='World Name', value=''.join(savedWorlds))
     e.add_field(name='Version', value=''.join(savedVersions))
     await ctx.send(embed=e)
-
 #Bot Version
 @client.command(aliases=['botVersion','scriptversion','scriptVersion'])
 async def botversion(ctx):
@@ -409,8 +404,8 @@ async def world(ctx, *, args):
     #Changing info in file to new info
     if bool1 == True:
         changedContent = content
-        for count2 in range(2):
-            changedContent.pop(0)
+        changedContent.pop(0)
+        changedContent.pop(0)
         changedContent.insert(0,world+"\n")
         changedContent.insert(1,version+"\n")
         outContent = changedContent
@@ -446,13 +441,8 @@ async def world(ctx, *, args):
         for i in range(len(propFile)):
             if 'level-name=' in propFile[i]:
                 propFile[i] = 'level-name=' + world + '\n'
-
-        gitignoreContent = open('.gitignore','r').readlines()
-        gitignoreContent.pop(0)
-        gitignoreContent.insert(0, world + '\n')
         
         worldName = world
-        open('.gitignore','wt').writelines(gitignoreContent)
         open('server.properties','wt').writelines(propFile)
         open('versions.txt','wt').writelines(outContent)
         await ctx.send('Success!')
@@ -483,6 +473,25 @@ async def generate(ctx):
         propFile = open('server.properties', 'rt').readlines()
         verFile = open('versions.txt', 'rt').readlines()
 
+        await ctx.send('What is the name of the new world?')
+        levelName = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+        for i in range(len(propFile)):
+            if 'level-name=' in propFile[i]:
+                propFile[i] = 'level-name=' + levelName.content + '\n'
+
+        await ctx.send('What is the version of ' + levelName.content + ' (1.8.9-1.16.5)')
+        worldVersion = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+        for v in versions:
+            if v in worldVersion.content:
+                for jar in os.listdir('./versions'):
+                    if v in str(jar):
+                        foundVersion = True
+                        serverDir = 'versions/' + str(jar)
+                        version = str(jar)[:-4]
+                        break
+        if not foundVersion:
+            await ctx.send('Invalid version!')
+
         await ctx.send('What is the seed of your new world (optional)')
         try:
             levelSeed = await client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=5)
@@ -505,34 +514,14 @@ async def generate(ctx):
                         break
         if not typeFound:
             await ctx.send('Invalid type!')
-            return
-
-        await ctx.send('What is the name of the new world?')
-        levelName = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-        for i in range(len(propFile)):
-            if 'level-name=' in propFile[i]:
-                propFile[i] = 'level-name=' + levelName.content + '\n'
-
-        await ctx.send('What is the version of ' + levelName.content)
-        worldVersion = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-        for v in versions:
-            if v in worldVersion.content:
-                for jar in os.listdir('./versions'):
-                    if v in str(jar):
-                        foundVersion = True
-                        serverDir = 'versions/' + str(jar)
-                        version = str(jar)[:-4]
-                        break
-        if not foundVersion:
-            await ctx.send('Invalid version!')
 
         if foundVersion and typeFound:
             await ctx.send('Loading...')
             worldName = levelName.content
             verFile[0] = worldName + '\n'
             verFile[1] = version + '\n'
-            open('versions.txt', 'wt').write(''.join(verFile))
-            open('server.properties', 'wt').write(''.join(propFile))
+            open('versions.txt', 'wt').writelines(verFile)
+            open('server.properties', 'wt').writelines(propFile)
             server = subprocess.Popen(f'java -Xmx{ramAlloc}m -Xms{ramAlloc}m -jar '+ serverDir + ' nogui', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
             while True:
                 line = server.stdout.readline()
@@ -554,8 +543,7 @@ async def generate(ctx):
 
 @client.command()
 async def properties(ctx):
-    description = '`1`  gamemode\n`2`  difficulty\n`3`  pvp\n`4`  hardcore\n`5`  motd'
-    embed = discord.Embed(title='server.properties file', description=description, color=ctx.author.color)
+    embed = discord.Embed(title='server.properties file', description='`1`  gamemode\n`2`  difficulty\n`3`  pvp\n`4`  hardcore\n`5`  motd', color=ctx.author.color)
     await ctx.send(embed=embed)
     answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
     try:
