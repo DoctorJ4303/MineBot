@@ -8,7 +8,7 @@ class HelpCommands(commands.Cog):
 
     @commands.group(invoke_without_command=True, aliases=['?'])
     async def help(self, ctx):
-        embed = discord.Embed(title='Help', description='Use .help <command> for more info on a command', color=ctx.author.color)
+        embed = discord.Embed(title='Help', description='Use mc.help <command> for more info on a command', color=ctx.author.color)
         embed.add_field(name='General', value='start, cancel, say, voted')
         embed.add_field(name='World', value='world, savedworlds,\nmap, regen,\nproperties')
         await ctx.send(embed=embed)
