@@ -10,7 +10,7 @@ class HelpCommands(commands.Cog):
     async def help(self, ctx):
         embed = discord.Embed(title='Help', description='Use mc.help <command> for more info on a command', color=ctx.author.color)
         embed.add_field(name='General', value='start, cancel, say, voted')
-        embed.add_field(name='World', value='world, savedworlds,\nmap, regen,\nproperties')
+        embed.add_field(name='World', value='world, worlds,\nmap, regen,\nproperties')
         await ctx.send(embed=embed)
 
     # General
@@ -47,15 +47,15 @@ class HelpCommands(commands.Cog):
         embed = discord.Embed(title='Map', description=('Downloads a map from https://www.minecraftmaps.com/'), color=ctx.author.color)
         await ctx.send(embed=embed)
     #List Worlds
-    @help.command(aliases=['savedworlds','worlds'])
-    async def saved_worlds(self, ctx):
+    @help.command(aliases=['savedworlds','saved_worlds'])
+    async def worlds(self, ctx):
         embed = discord.Embed(title='Worlds', description=('Gets a list of all saved worlds'), color=ctx.author.color)
-        embed.add_field(name='Aliases', value='savedworlds, worlds')
+        embed.add_field(name='Aliases', value='savedworlds, saved_worlds')
         await ctx.send(embed=embed)
     #World
     @help.command()
     async def world(self, ctx):
-        embed = discord.Embed(title='World', description=('Able to change world from saves'), color=ctx.author.color)
+        embed = discord.Embed(title='World', description=('Able to change world to previously saved world'), color=ctx.author.color)
         await ctx.send(embed=embed)
     #Generate
     @help.command()
