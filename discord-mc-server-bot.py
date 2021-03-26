@@ -86,12 +86,6 @@ async def startServer(ctx):
 
     server = subprocess.Popen(f'java -Xmx{ramAlloc}m -Xms{ramAlloc}m -jar '+ serverDir + ' nogui', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
 
-    gitFileContent = open('.gitignore', 'r').readlines()
-    with open('.gitignore', 'wt') as gitFile:
-        gitFileContent.pop(0)
-        gitFileContent.insert(0, worldName + '\n')
-        gitFile.writelines(gitFileContent)
-
     b = threading.Thread(name='backround', target=printLog)
     b.start()
 
@@ -652,67 +646,34 @@ async def guessing(ctx, arg):
 async def checkPlayers():
     global serverStopped
     global shuttingDown
-    global votedPlayers
-    
     if not serverStopped:
-        try:
-            
-            players = MinecraftServer.lookup('localhost').status().players.online
-            
-            if players < minPlayers and not shuttingDown:
-                shuttingDown = True
-                c('say Server shutting down in 10 minutes')
-                await asyncio.sleep(300)
+        players = MinecraftServer.lookup('localhost').status().players.online
+        if players < minPlayers and not shuttingDown:
+            shuttingDown = True
+            c('say Not enough players, server shutting down in 10 minutes')
+            for i in range(600):
                 players = MinecraftServer.lookup('localhost').status().players.online
-                
-                if players < minPlayers:
-                    c('say Server shutting down in 5 minute')
-                    await asyncio.sleep(240)
-                    players = MinecraftServer.lookup('localhost').status().players.online
-                    
-                    if players < minPlayers:
-                        c('say Server shutting down in 1 minute')
-                        await asyncio.sleep(55)
-                        players = MinecraftServer.lookup('localhost').status().players.online
-                        
-                        if players < minPlayers:
-                            c('say Server shutting down in 5 seconds')
-                            await asyncio.sleep(1)
-                            c('say Server shutting down in 4 seconds')
-                            await asyncio.sleep(1)
-                            c('say Server shutting down in 3 seconds')
-                            await asyncio.sleep(1)
-                            c('say Server shutting down in 2 seconds')
-                            await asyncio.sleep(1)
-                            c('say Server shutting down in 1 second')
-                            await asyncio.sleep(1)
-                            players = MinecraftServer.lookup('localhost').status().players.online
-                            
-                            if players < minPlayers:
-                                stopServer()
-                                votedPlayers.clear()
-                                shuttingDown = False
-                            elif players >= minPlayers and shuttingDown:
-                                c('say More players have joined, cancelling the shutdown')
-                                shuttingDown = False
-                                
-                        elif players >= minPlayers and shuttingDown:
-                            c('say More players have joined, cancelling the shutdown')
-                            shuttingDown = False
-                            
-                elif players >= minPlayers and shuttingDown:
-                    c('say More players have joined, cancelling the shutdown')
+                if players >= minPlayers:
+                    c('say More players have joined, Shutdown cancelled')
                     shuttingDown = False
-                    
-            elif players >= minPlayers and shuttingDown:
-                c('say More players have joined, cancelling the shutdown')
-                shuttingDown = False
-
-        except ConnectionRefusedError:
-            shuttingDown = False
-            m('The server is not responding, try again later.')
+                    break
+                else:
+                    await asyncio.sleep(1)
+                    if i == 300:
+                        c('say Not enough players, server shutting down in 5 minutes')
+                    if i == 540:
+                        c('say Not enough players, server shutting down in 1 minute')
+                    if i == 595:
+                        c('say Not enough players, server shutting down in 5 seconds')
+                    if i == 599:
+                        m('Server stopping...')
+                        c('stop')
+                        serverStopped = True
+                        await asyncio.sleep(10)
+                        server.kill()
 def printLog():
     while not serverStopped:
         line = server.stdout.readline()
         print(line.rstrip().decode())
+
 init()
