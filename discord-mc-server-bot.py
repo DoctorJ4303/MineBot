@@ -112,7 +112,6 @@ async def downloadWorld(ctx, arg):
     global version
     try:
         r = requests.get(str(arg) + '/download')
-        print(io.BytesIO(r.content))
         z = zipfile.ZipFile(io.BytesIO(r.content))
         worldName = getWorld(z)
         for name in z.namelist():
@@ -369,8 +368,6 @@ async def world(ctx, *, args):
                                 version = newContent[inCount1+1:lengthContent-1]
                                 worldName1 = content[0][:-1]
                                 versionName1 = content[1][:-1]
-                                m(world)
-                                m(version)
                                 break
                     if bool1:
                         break
