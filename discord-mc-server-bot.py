@@ -1,4 +1,4 @@
-scriptVersion = '1.2.6'
+scriptVersion = '1.2.7'
 # Thanks to nickbrooking for the mc-server code
 import asyncio
 import datetime
@@ -19,6 +19,7 @@ import requests
 from discord.ext import commands, tasks
 from discord.utils import get
 from mcstatus import MinecraftServer
+from bs4 import BeautifulSoup
 
 #############
 # Variables #
@@ -30,7 +31,8 @@ worldName = str(open('versions.txt','rt').readlines()[0][0:-1])
 serverDir = 'versions\\' + str(open('versions.txt','rt').readlines()[1][0:-1]) + '.jar'
 version = str(open('versions.txt','rt').readlines()[1][0:-1])
 versions = ['1.16','1.15','1.14','1.13','1.12','1.11','1.10','1.9','1.8']
-minPlayers = 1
+fullVersions = ['1.16.5','1.15.2','1.14.4','1.13.2','1.12.2','1.11.2','1.10.2','1.9.4','1.8.9']
+minPlayers = 2
 votedPlayers = []
 server = ''
 serverStopped = True
@@ -69,15 +71,9 @@ def removeFancy(s):
     return s
 #Remove space
 def removeSpaces(s):
-    i = 0
-    while i < len(s):
-        if s[i] == ' ':
-            s = s[0:i] + s[i+1:len(s)]
-        else:
-            i+=1
-    return s
+    return ''
 #Start Server
-async def startServer(ctx):
+async def startServer():
     global server
     global serverStopped
     serverStopped = False
@@ -104,33 +100,37 @@ def zipdir(path, ziph):
     for root, dirs, files in os.walk(worldName):
         for file in files:
             ziph.write(os.path.join(root, file))
+def download_url(url, save_path, chunk_size=128):
+    r = requests.get(url, stream=True)
+    with open(save_path, 'wb') as fd:
+        for chunk in r.iter_content(chunk_size=chunk_size):
+            fd.write(chunk)
 #Download World
-async def download_world(ctx, arg):
+async def downloadWorld(ctx, arg):
     global worldName
     global serverDir
     global version
-    lines = []
     try:
-                
-        await ctx.send('Downloading...')
-        z = zipfile.ZipFile(io.BytesIO(requests.get(str(str(arg) + '/download')).content))
+        r = requests.get(str(arg) + '/download')
+        print(io.BytesIO(r.content))
+        z = zipfile.ZipFile(io.BytesIO(r.content))
         worldName = getWorld(z)
         for name in z.namelist():
             if not name.endswith(r'.txt') and not name.endswith(r'.zip'):
-                z.extract(name)
-                            
-        lines = open('server.properties','rt').readlines()           
-        for i in range(len(lines)):
-            if 'level-name=' in lines[i]:
-                lines[i] = f'level-name={worldName}\n'
-        open('server.properties', 'wt').write(''.join(lines))
+                z.extract(name)  
+
+        propFileLines = open('server.properties','rt').readlines()           
+        for i in range(len(propFileLines)):
+            if 'level-name=' in propFileLines[i]:
+                propFileLines[i] = f'level-name={worldName}\n'
+        open('server.properties', 'wt').writelines(propFileLines)
                 
-        lines = open('versions.txt','rt').readlines()
-        lines[0] = worldName  + '\n'      
-        open('versions.txt', 'wt').write(''.join(lines))
+        vFileContent = open('versions.txt','rt').readlines()
+        open('versions.txt','w').close()
+        vFileContent[0] = worldName  + '\n'      
+        open('versions.txt', 'wt').writelines(vFileContent)
                             
         await ctx.send('Done!')
-                
     except:
         await ctx.send('There was an error in downloading the world, try again in a few minutes')
 #Get World
@@ -139,30 +139,20 @@ def getWorld(z):
         if 'level.dat_old' in name:
             return name[0:-14]
 #Get Version
-def getVersion(ctx, arg):
+def getVersion(arg):
     global serverDir
     global worldName
     global version
-    lines = []
-    htmlText = html2text.html2text(str(requests.get(str(arg)).text))
+    htmlText = html2text.html2text(str(requests.get(str(arg)).text)).lower()
     html2text.HTML2Text().ignore_links = True
-    for i in range(len(htmlText)):
-        if htmlText.lower()[i:i+11] == 'mc version:':
-            for v in versions:
-                if v in htmlText[i+10:i+20]:
-                    for files in os.listdir('./versions'):
-                        for fileName in files:
-                            if fileName.endswith(r'.jar'):
-                                if v in fileName:
-                                    version = fileName[0:-4]
-                                    with open('versions.txt', 'rt') as f:
-                                        for line in f:
-                                            lines.append(line)
-    open('versions.txt','wt').close()
-    lines[1] = version + '\n'
-    with open('versions.txt','at') as f:
-        for line in lines:
-            f.write(line)
+    vIndex = htmlText.rfind('mc version:') + 11
+    for i in range(len(versions)):
+        if versions[i] in htmlText[vIndex:vIndex+10]:
+            version = fullVersions[i]
+
+    vFileContent = open('versions.txt','r').readlines()
+    vFileContent[1] = version + '\n'
+    open('versions.txt','w').writelines(vFileContent)
 #Save World
 def saveWorld(name: str):
     zipf = zipfile.ZipFile('saves/' + name + '_' + version + '_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.zip', 'w')
@@ -277,16 +267,14 @@ async def start(ctx):
         embed.add_field(name = 'World', value = worldName)
         embed.add_field(name = 'Version', value = version)
         await ctx.send(embed=embed)
-        await startServer(ctx)
+        await startServer()
         serverStopped = False
 #Say
 @client.command()
 async def say(ctx, *, arg):
     if not serverStopped:
-        if not ctx.author.nick == None:
-            c('tellraw @a {\"text\":\"<' + str(ctx.author.nick) + '> ' + str(arg) + '\"}')
-        else:
-            c('tellraw @a {\"text\":\"<' + str(ctx.author)[0:-5] + '> ' + str(arg) + '\"}')
+        c('tellraw @a {\"text\":\"<' + str(ctx.author.nick) + '> ' + str(arg) + '\"}' if not ctx.author.nick == None 
+                else 'tellraw @a {\"text\":\"<' + str(ctx.author)[0:-5] + '> ' + str(arg) + '\"}')
     else:
         await ctx.send('Server is not up.')
 #Voted
@@ -312,28 +300,18 @@ async def voted(ctx):
 async def map(ctx, arg):
     if 'https://www.minecraftmaps.com/' in str(arg):
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
-        noAnswers = ['no','naw','nah','nope','n']
 
         await ctx.send('Would you like to save ' + worldName + '?')
         msg = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+        getVersion(arg)
         if msg.content.lower() in yesAnswers:
             await ctx.send('Saving...')
             saveWorld(worldName)
-            try:
-                shutil.rmtree(fr'{worldName}/')
-            except:
-                m('World file not found')
-            getVersion(ctx, arg)
-            await download_world(ctx, arg)
-        elif msg.content.lower() in noAnswers:
-            try:
-                shutil.rmtree(fr'{worldName}/')
-            except:
-                m('World file not found')
-            getVersion(ctx, arg)
-            await download_world(ctx, arg)
-        else:
-            await ctx.send('Invalid answer!')
+        try:
+            shutil.rmtree(fr'{worldName}/')
+        except:
+            m('World file not found')
+        await downloadWorld(ctx, arg)
     else:
         await ctx.send('That is not from minecraftmaps!')
 #Saved Worlds
@@ -391,6 +369,8 @@ async def world(ctx, *, args):
                                 version = newContent[inCount1+1:lengthContent-1]
                                 worldName1 = content[0][:-1]
                                 versionName1 = content[1][:-1]
+                                m(world)
+                                m(version)
                                 break
                     if bool1:
                         break
@@ -499,11 +479,11 @@ async def generate(ctx):
 
         await ctx.send('What type of world do you want? default, flat, amplified, large biomes')
         levelType = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-        for t in worldTypes:
-            if t.lower() in removeSpaces(levelType.content.lower()):
-                for i in range(len(propFile)):
-                    if 'level-type=' in propFile[i]:
-                        propFile[i] = 'level-type=' + t + '\n'
+        for i in range(len(worldTypes)):
+            if worldTypes[i].lower() in ''.join(levelType.content.split(' ')):
+                for j in range(len(propFile)):
+                    if 'level-type=' in propFile[j]:
+                        propFile[j] = 'level-type=' + worldTypes[i] + '\n'
                         typeFound = True
                         break
         if not typeFound:
@@ -524,12 +504,6 @@ async def generate(ctx):
                     await asyncio.sleep(5)
                     server.kill()
                     break
-
-            gitFileContent = open('.gitignore', 'r').readlines()
-            with open('.gitignore', 'wt') as gitFile:
-                gitFileContent.pop(0)
-                gitFileContent.insert(0, worldName + '\n')
-                gitFile.writelines(gitFileContent)
             
             await ctx.send('Success in generating ' + worldName + '!')
     else:
@@ -540,6 +514,7 @@ async def properties(ctx):
     embed = discord.Embed(title='server.properties file', description='`1`  gamemode\n`2`  difficulty\n`3`  pvp\n`4`  hardcore\n`5`  motd', color=ctx.author.color)
     await ctx.send(embed=embed)
     answer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
+    properties = open('server.properties','rt').readlines()
     try:
         if int(answer.content) == 1:
             gamemodes = ['adventure','survival','spectator','creative']
@@ -547,12 +522,9 @@ async def properties(ctx):
             await ctx.send(embed=embed)
             gamemodeAnswer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
             if gamemodeAnswer.content.lower() in gamemodes:
-                properties = open('server.properties','rt').readlines()
                 for i in range(len(properties)):
                     if 'gamemode=' in properties[i] and not 'force-gamemode=' in properties[1]:
                         properties[i] = 'gamemode=' + gamemodeAnswer.content.lower() + '\n'
-                with open('server.properties','wt') as propFile:
-                    propFile.write(''.join(properties))
                 await ctx.send('Default gamemode has been set to '+gamemodeAnswer.content.lower()+'!')
             else:
                 await ctx.send('Invalid value!')
@@ -563,12 +535,9 @@ async def properties(ctx):
             await ctx.send(embed=embed)
             difficultyAnswer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
             if difficultyAnswer.content.lower() in difficulties:
-                properties = open('server.properties','rt').readlines()
                 for i in range(len(properties)):
                     if 'difficulty=' in properties[i]:
                         properties[i] = 'difficulty=' + difficultyAnswer.content.lower() + '\n'
-                with open('server.properties','wt') as propFile:
-                    propFile.write(''.join(properties))
                 await ctx.send('Changed default difficulty to ' + difficultyAnswer.content.lower() + '!')
             else:
                 await ctx.send('Invalid value!')
@@ -579,12 +548,9 @@ async def properties(ctx):
             await ctx.send(embed=embed)
             pvpAnswer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
             if pvpAnswer.content.lower() in TF:
-                properties = open('server.properties','rt').readlines()
                 for i in range(len(properties)):
                     if 'pvp=' in properties[i]:
                         properties[i] = 'pvp=' + pvpAnswer.content.lower() + '\n'
-                with open('server.properties','wt') as propFile:
-                    propFile.write(''.join(properties))
                 await ctx.send('Changed allowed pvp to ' + pvpAnswer.content.lower() + '!')
             else:
                 await ctx.send('Invalid value!')
@@ -595,12 +561,9 @@ async def properties(ctx):
             await ctx.send(embed=embed)
             hardcoreAnswer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
             if hardcoreAnswer.content.lower() in TF:
-                properties = open('server.properties','rt').readlines()
                 for i in range(len(properties)):
                     if 'hardcore=' in properties[i]:
                         properties[i] = 'hardcore=' + hardcoreAnswer.content.lower() + '\n'
-                with open('server.properties','wt') as propFile:
-                    propFile.write(''.join(properties))
                 await ctx.send('Changed hardcore to ' + hardcoreAnswer.content.lower() + '!')
             else:
                 await ctx.send('Invalid value!')
@@ -609,16 +572,16 @@ async def properties(ctx):
             embed = discord.Embed(title='MOTD', description='Change the motd (message of the day)')
             await ctx.send(embed=embed)
             motdAnswer = await client.wait_for('message', check=lambda message: message.author == ctx.author)
-            properties = open('server.properties','rt').readlines()
             for i in range(len(properties)):
                 if 'motd=' in properties[i]:
                     properties[i] = 'motd=' + motdAnswer.content + '\n'
-                with open('server.properties','wt') as propFile:
-                    propFile.write(''.join(properties))
             await ctx.send('The motd has been changed to ' + motdAnswer.content + '!')
-            
+        
         else:
-            await ctx.send('That is out of range!')
+            await ctx.send('Invalid Answer')
+
+        with open('server.properties','wt') as propFile:
+            propFile.writelines(properties)
     except ValueError:
         await ctx.send('Must be a number!')
     if not serverStopped:
@@ -674,6 +637,7 @@ async def checkPlayers():
 def printLog():
     while not serverStopped:
         line = server.stdout.readline()
-        print(line.rstrip().decode())
+        if not line.rstrip().decode() == '':
+            print(line.rstrip().decode())
 
 init()
