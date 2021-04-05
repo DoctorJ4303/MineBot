@@ -27,9 +27,9 @@ from bs4 import BeautifulSoup
 
 ramAlloc = '4092'
 TOKEN = "ODA2NTYyOTcxNjU5OTI3NTc5.YBrQTQ.r0OwAwJojSoR0xzTdFlb8pzj-Oo"
-worldName = str(open('versions.txt','rt').readlines()[0][0:-1])   
-serverDir = 'versions\\' + str(open('versions.txt','rt').readlines()[1][0:-1]) + '.jar'
+worldName = str(open('versions.txt','rt').readlines()[0][0:-1])
 version = str(open('versions.txt','rt').readlines()[1][0:-1])
+serverDir = 'versions\\' + str(open('versions.txt','rt').readlines()[1][0:-1]) + '.jar'
 versions = ['1.16','1.15','1.14','1.13','1.12','1.11','1.10','1.9','1.8']
 fullVersions = ['1.16.5','1.15.2','1.14.4','1.13.2','1.12.2','1.11.2','1.10.2','1.9.4','1.8.9']
 minPlayers = 2
@@ -172,10 +172,8 @@ async def on_ready():
 #Command Error
 @client.event
 async def on_command_error(ctx, error):
-    if not isinstance(error, commands.CheckFailure):
-        print(error)
-        await ctx.message.add_reaction('❗')
-        await ctx.send("Invalid command")
+    print(error)
+    await ctx.send("Invalid command")
 
 ############
 # Commands #
@@ -185,7 +183,7 @@ async def on_command_error(ctx, error):
 
 #Op
 @client.command()
-@commands.has_permissions(administrator=True)
+@commands.has_permissions(manage_guild=True)
 async def op(ctx, arg):
     if not serverStopped:
         c('op ' + str(arg))
@@ -194,7 +192,7 @@ async def op(ctx, arg):
         await ctx.send('Server is not up')
 #Stop
 @client.command(aliases=['stop'])
-@commands.has_permissions(administrator=True)
+@commands.has_permissions(manage_guild=True)
 async def forcestop(ctx):
         global votedPlayers
         if not serverStopped:
@@ -205,7 +203,7 @@ async def forcestop(ctx):
             await ctx.send('The server is not up')
 #Set Minimum Players
 @client.command(aliases=['setmin','setplayers'])
-@commands.has_permissions(administrator=True)
+@commands.has_permissions(manage_guild=True)
 async def setminplayers(ctx, arg):
     global minPlayers
     try:
@@ -233,7 +231,6 @@ async def cancel(ctx):
         embed = discord.Embed(title='Voted Players', description=description, color=ctx.author.color)
         if len(votedPlayers) >= 1:
             await ctx.send(embed=embed)
-        await ctx.message.add_reaction('✅')
     except ValueError:
         await ctx.send('You have not voted yet.')
 #Start
@@ -257,7 +254,6 @@ async def start(ctx):
             embed = discord.Embed(title='Voted Players', description=description, color=ctx.author.color)
             if not len(votedPlayers) >= minPlayers:
                 await ctx.send(embed=embed)
-            await ctx.message.add_reaction('✅')
     elif not serverStopped:
         ctx.send('Server is already up.')
     
@@ -374,25 +370,21 @@ async def world(ctx, *, args):
                             
     #Changing info in file to new info
     if bool1 == True:
-        changedContent = content
-        changedContent.pop(0)
-        changedContent.pop(0)
-        changedContent.insert(0,world+"\n")
-        changedContent.insert(1,version+"\n")
-        outContent = changedContent
+        content[0] = world + '\n'
+        content[1] = version + '\n'
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
         await ctx.send('Would you like to save ' + worldName1 + '?')
         msg = await client.wait_for('message', check=lambda message: message.author == ctx.author)
         if msg.content.lower() in yesAnswers:
             await ctx.send('Saving...')
-            outContent.append(worldName1 + '=' + versionName1 + '\n')
+            content.append(worldName1 + '=' + versionName1 + '\n')
             saveWorld(worldName1)
         
         try:
             shutil.rmtree(fr'{worldName1}/')
         except:
             m('World file not found')
-        outContent.remove(world + '=' + version + '\n')
+        content.remove(world + '=' + version + '\n')
 
         savesList = os.listdir(r"./saves")
         for i in range(len(savesList)):
@@ -415,7 +407,7 @@ async def world(ctx, *, args):
         
         worldName = world
         open('server.properties','wt').writelines(propFile)
-        open('versions.txt','wt').writelines(outContent)
+        open('versions.txt','wt').writelines(content)
         await ctx.send('Success!')
     else:
         await ctx.send("There is no world with that name")
