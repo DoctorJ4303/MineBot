@@ -71,9 +71,10 @@ def removeFancy(s):
 async def startServer():
     global server
     global serverStopped
-    serverStopped = False
+    
     m('Starting server...')
     server = subprocess.Popen(f'java -Xmx{ramAlloc}m -Xms{ramAlloc}m -jar '+ serverDir + ' nogui', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+    serverStopped = False
     b = threading.Thread(name='backround', target=printLog)
     b.start()
 #Stop Server
@@ -578,7 +579,6 @@ async def properties(ctx):
                 if 'motd=' in properties[i]:
                     properties[i] = 'motd=' + motdAnswer.content + '\n'
             await ctx.send('The motd has been changed to ' + motdAnswer.content + '!')
-        
         else:
             await ctx.send('Invalid Answer')
 
@@ -590,7 +590,6 @@ async def properties(ctx):
         c('say Reloading...')
         await asyncio.sleep(1)
         c('reload')
-
 # Fun Commands
 
 #Gussing game
@@ -605,6 +604,7 @@ async def guessing(ctx, arg):
 async def guessing_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Missing a number')
+
 ###################
 # Backround Tasks #
 ###################
