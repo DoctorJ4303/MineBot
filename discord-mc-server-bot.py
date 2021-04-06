@@ -32,13 +32,16 @@ version = str(open('versions.txt','rt').readlines()[1][0:-1])
 serverDir = 'versions\\' + str(open('versions.txt','rt').readlines()[1][0:-1]) + '.jar'
 versions = ['1.16','1.15','1.14','1.13','1.12','1.11','1.10','1.9','1.8']
 fullVersions = ['1.16.5','1.15.2','1.14.4','1.13.2','1.12.2','1.11.2','1.10.2','1.9.4','1.8.9']
-minPlayers = 2
+minPlayers = 1
 votedPlayers = []
 server = ''
 serverStopped = True
 shuttingDown = False
+os.system('title ' + '[d-s-bot - ' + scriptVersion + ']')
 client = commands.Bot(command_prefix='mc.')
 client.remove_command('help')
+client.load_extension('cogs.help-commands')
+client.run(TOKEN)
 
 ##################    
 # Main Functions #
@@ -52,11 +55,6 @@ def c(command):
     global server
     server.stdin.write((command + '\n').encode())
     server.stdin.flush()
-#Initialisation
-def init():
-    os.system('title ' + '[d-s-bot - ' + scriptVersion + ']')
-    client.load_extension('cogs.help-commands')
-    client.run(TOKEN)
 #Remove Fancy
 def removeFancy(s):
     listOfFancy = ['`','*','_']
@@ -69,22 +67,15 @@ def removeFancy(s):
             else:
                 i += 1
     return s
-#Remove space
-def removeSpaces(s):
-    return ''
 #Start Server
 async def startServer():
     global server
     global serverStopped
     serverStopped = False
-
     m('Starting server...')
-
     server = subprocess.Popen(f'java -Xmx{ramAlloc}m -Xms{ramAlloc}m -jar '+ serverDir + ' nogui', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-
     b = threading.Thread(name='backround', target=printLog)
     b.start()
-
 #Stop Server
 async def stopServer():
     global server
@@ -152,6 +143,15 @@ def getVersion(arg):
     vFileContent = open('versions.txt','r').readlines()
     vFileContent[1] = version + '\n'
     open('versions.txt','w').writelines(vFileContent)
+def getVotedPlayers():
+    global votedPlayers
+    players = []
+    for player in votedPlayers:
+        if player.nick == None:
+            players.append(removeFancy(str(player))[0:-5] + '\n')
+        else:
+            players.append(removeFancy(player.nick) + '\n')
+    return (''.join(players) + str(len(votedPlayers)) + '/' + str(minPlayers))
 #Save World
 def saveWorld(name: str):
     zipf = zipfile.ZipFile('saves/' + name + '_' + version + '_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.zip', 'w')
@@ -171,9 +171,10 @@ async def on_ready():
     m("Bot is up!")
 #Command Error
 @client.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx, error): 
     print(error)
-    await ctx.send("Invalid command")
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send('Invalid command')
 
 ############
 # Commands #
@@ -190,6 +191,12 @@ async def op(ctx, arg):
         await ctx.send(str(arg) + ' has been opped')
     else:
         await ctx.send('Server is not up')
+@op.error
+async def op_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing a player')
+    elif isinstance(error, commands.MissingPermissions):
+        await ctx.send('You do not have a high enough rank!')
 #Stop
 @client.command(aliases=['stop'])
 @commands.has_permissions(manage_guild=True)
@@ -202,18 +209,47 @@ async def forcestop(ctx):
         else:
             await ctx.send('The server is not up')
 #Set Minimum Players
-@client.command(aliases=['setmin','setplayers'])
+@client.command(aliases=['setminplayers','setmin'])
 @commands.has_permissions(manage_guild=True)
-async def setminplayers(ctx, arg):
+async def set_min(ctx, arg):
     global minPlayers
     try:
         minPlayers = int(arg)
         await ctx.send('Minimum players has been set to '+str(arg))
     except ValueError:
         await ctx.send('Has to be a number')
-        
+@set_min.error
+async def set_min_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Needs to be a number!')
+    elif isinstance(error, commands.MissingPermissions):
+        await ctx.send('You do not have a high enough rank!')
 # Server Commands
 
+#Start
+@client.command(aliases=['votestart'])
+async def start(ctx):
+    global scriptVersion
+    global serverStopped
+    global votedPlayers
+    if serverStopped:
+        if ctx.author in votedPlayers:
+            await ctx.send('You have already voted!')
+        else:
+            votedPlayers.append(ctx.author)
+            embed = discord.Embed(title='Voted Players', description=getVotedPlayers(), color=ctx.author.color)
+            if not len(votedPlayers) >= minPlayers:
+                await ctx.send(embed=embed)
+    elif not serverStopped:
+        ctx.send('Server is already up.')
+
+    if serverStopped and len(votedPlayers) >= minPlayers:
+        embed = discord.Embed(title='Starting Server...', description='', color=ctx.author.color)
+        embed.add_field(name = 'World', value = worldName)
+        embed.add_field(name = 'Version', value = version)
+        await ctx.send(embed=embed)
+        await startServer()
+        serverStopped = False
 #Cancel
 @client.command(aliases=['cancelvote'])
 async def cancel(ctx):
@@ -233,37 +269,6 @@ async def cancel(ctx):
             await ctx.send(embed=embed)
     except ValueError:
         await ctx.send('You have not voted yet.')
-#Start
-@client.command(aliases=['votestart'])
-async def start(ctx):
-    global scriptVersion
-    global serverStopped
-    global votedPlayers
-    players = []
-    if serverStopped:
-        if ctx.author in votedPlayers:
-            await ctx.send('You have already voted!')
-        else:
-            votedPlayers.append(ctx.author)
-            for player in votedPlayers:
-                if player.nick == None:
-                    players.append(removeFancy(str(player))[0:-5] + '\n')
-                else:
-                    players.append(removeFancy(player.nick) + '\n')
-            description = (''.join(players) + str(len(votedPlayers)) + '/' + str(minPlayers))
-            embed = discord.Embed(title='Voted Players', description=description, color=ctx.author.color)
-            if not len(votedPlayers) >= minPlayers:
-                await ctx.send(embed=embed)
-    elif not serverStopped:
-        ctx.send('Server is already up.')
-    
-    if serverStopped and len(votedPlayers) >= minPlayers:
-        embed = discord.Embed(title='Starting Server...', description='', color=ctx.author.color)
-        embed.add_field(name = 'World', value = worldName)
-        embed.add_field(name = 'Version', value = version)
-        await ctx.send(embed=embed)
-        await startServer()
-        serverStopped = False
 #Say
 @client.command()
 async def say(ctx, *, arg):
@@ -309,6 +314,10 @@ async def map(ctx, arg):
         await downloadWorld(ctx, arg)
     else:
         await ctx.send('That is not from minecraftmaps!')
+@map.error
+async def map_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing a link from minecraftmaps.com!')
 #Saved Worlds
 @client.command(aliases=['savedworlds','worlds'])
 async def saved_worlds(ctx):
@@ -411,6 +420,10 @@ async def world(ctx, *, args):
         await ctx.send('Success!')
     else:
         await ctx.send("There is no world with that name")
+@world.error
+async def world_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing world name')
 #Generate
 @client.command()
 async def generate(ctx):
@@ -588,7 +601,10 @@ async def guessing(ctx, arg):
         await ctx.send("Congratulations! You got the right answer.")
     else:
         await ctx.send("I'm sorry. That is an incorrect answer. The correct answer is "+str(rand1)+".")
-
+@guessing.error
+async def guessing_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing a number')
 ###################
 # Backround Tasks #
 ###################
@@ -628,5 +644,3 @@ def printLog():
         line = server.stdout.readline()
         if not line.rstrip().decode() == '':
             print(line.rstrip().decode())
-
-init()
