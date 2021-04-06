@@ -26,7 +26,7 @@ from bs4 import BeautifulSoup
 #############
 
 ramAlloc = '4092'
-TOKEN = 'ODI5MDA2OTcyNTA1NDIzOTcy.YGx26A.Fn1gk13-TT91_83v15wyPL5A8b4'
+TOKEN = os.environ['TOKEN']
 worldName = str(open('versions.txt','rt').readlines()[0][0:-1])
 version = str(open('versions.txt','rt').readlines()[1][0:-1])
 serverDir = 'versions\\' + str(open('versions.txt','rt').readlines()[1][0:-1]) + '.jar'
@@ -38,12 +38,7 @@ server = ''
 serverStopped = True
 shuttingDown = False
 os.system('title ' + '[d-s-bot - ' + scriptVersion + ']')
-print('hi')
 client = commands.Bot(command_prefix='mc.')
-client.run('ODI5MDA2OTcyNTA1NDIzOTcy.YGx26A.Fn1gk13-TT91_83v15wyPL5A8b4')
-@client.command()
-async def test(ctx):
-    ctx.send('pls')
 #client.remove_command('help')
 #client.load_extension('cogs.help-commands')
 
@@ -647,4 +642,5 @@ def printLog():
     while not serverStopped:
         line = server.stdout.readline()
         if not line.rstrip().decode() == '':
-            print(line.rstrip().decode())
+            print(line.rstrip().decode()) 
+client.run(TOKEN)
