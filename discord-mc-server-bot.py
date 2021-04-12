@@ -39,8 +39,6 @@ serverStopped = True
 shuttingDown = False
 os.system('title ' + '[d-s-bot - ' + scriptVersion + ']')
 client = commands.Bot(command_prefix='mc.')
-#client.remove_command('help')
-#client.load_extension('cogs.help-commands')
 
 ##################
 # Main Functions #
@@ -102,7 +100,7 @@ async def downloadWorld(ctx, arg):
     global serverDir
     global version
     try:
-        r = requests.get(str(arg) + '/download')
+        r = requests.get(fr'{str(arg)}+/download')
         z = zipfile.ZipFile(io.BytesIO(r.content))
         worldName = getWorld(z)
         for name in z.namelist():
@@ -241,7 +239,7 @@ async def start(ctx):
             if not len(votedPlayers) >= minPlayers:
                 await ctx.send(embed=embed)
     elif not serverStopped:
-        ctx.send('Server is already up.')
+        await ctx.send('Server is already up.')
 
     if serverStopped and len(votedPlayers) >= minPlayers:
         embed = discord.Embed(title='Starting Server...', description='', color=ctx.author.color)
@@ -249,26 +247,22 @@ async def start(ctx):
         embed.add_field(name = 'Version', value = version)
         await ctx.send(embed=embed)
         await startServer()
+        votedPlayers.clear()
         serverStopped = False
 #Cancel
 @client.command(aliases=['cancelvote'])
 async def cancel(ctx):
     global votedPlayers
-    players = []
-    try:
-        votedPlayers.remove(ctx.message.author)
-        players = []
-        for player in votedPlayers:
-            if player.nick == None:
-                players.append(removeFancy(str(player))[0:-5] + '\n')
-            else:
-                players.append(removeFancy(player.nick) + '\n')
-        description = (''.join(players) + str(len(votedPlayers)) + '/' + str(minPlayers))
-        embed = discord.Embed(title='Voted Players', description=description, color=ctx.author.color)
-        if len(votedPlayers) >= 1:
-            await ctx.send(embed=embed)
-    except ValueError:
-        await ctx.send('You have not voted yet.')
+    if serverStopped:
+        try:
+            votedPlayers.remove(ctx.message.author)
+            embed = discord.Embed(title='Voted Players', description=getVotedPlayers, color=ctx.author.color)
+            if len(votedPlayers) >= 1:
+                await ctx.send(embed=embed)
+        except ValueError:
+            await ctx.send('You have not voted yet.')
+    else:
+        await ctx.send('Server is already up.')
 #Say
 @client.command()
 async def say(ctx, *, arg):
@@ -280,18 +274,14 @@ async def say(ctx, *, arg):
 #Voted
 @client.command(aliases=['votedplayers'])
 async def voted(ctx):
-    players = []
-    if not len(votedPlayers) == 0:
-        for player in votedPlayers:
-            if player.nick == None:
-                players.append(str(player) + '\n')
-            else:
-                players.append(str(player.nick) + '\n')
-            description = (''.join(players) + '\n' + str(len(votedPlayers)) + '/' + str(int((minPlayers))))
-            embed = discord.Embed(title='Voted Players', description=description, color=ctx.author.color)
+    if serverStopped:
+        if not len(votedPlayers) == 0:
+            embed = discord.Embed(title='Voted Players', description=getVotedPlayers(), color=ctx.author.color)
             await ctx.send(embed=embed)
+        else:
+            await ctx.send('Nobody has voted yet.')
     else:
-        await ctx.send('Nobody has voted yet')
+        await ctx.send('Server is already up.')
 
 # World Commands 
 
@@ -643,4 +633,9 @@ def printLog():
         line = server.stdout.readline()
         if not line.rstrip().decode() == '':
             print(line.rstrip().decode()) 
+@client.command()
+async def test(ctx):
+    print('L,L'.split('f'))
+client.remove_command('help')
+client.load_extension('cogs.help-commands')
 client.run(TOKEN)
