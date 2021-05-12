@@ -10,16 +10,14 @@ import subprocess
 import sys
 import threading
 import time
-import urllib.request
 import zipfile
 
 import discord
-import html2text
 import requests
+import html2text
 from discord.ext import commands, tasks
 from discord.utils import get
 from mcstatus import MinecraftServer
-from bs4 import BeautifulSoup
 
 #############
 # Variables #
@@ -95,32 +93,30 @@ def download_url(url, save_path, chunk_size=128):
         for chunk in r.iter_content(chunk_size=chunk_size):
             fd.write(chunk)
 #Download World
-async def downloadWorld(ctx, arg):
+def downloadWorld(url):
     global worldName
     global serverDir
     global version
-    try:
-        r = requests.get(fr'{str(arg)}+/download')
-        z = zipfile.ZipFile(io.BytesIO(r.content))
-        worldName = getWorld(z)
-        for name in z.namelist():
-            if not name.endswith(r'.txt') and not name.endswith(r'.zip'):
-                z.extract(name)  
+    r = requests.get(url, stream=True)
+    with open('world.zip', 'wb') as fd:
+        for chunk in r.iter_content(chunk_size=128):
+            fd.write(chunk)
+    z = zipfile.ZipFile('world.zip')
+    worldName = getWorld(z)
+    for name in z.namelist():
+        if not name.endswith(r'.txt') and not name.endswith(r'.zip'):
+            z.extract(name)
 
-        propFileLines = open('server.properties','rt').readlines()           
-        for i in range(len(propFileLines)):
-            if 'level-name=' in propFileLines[i]:
-                propFileLines[i] = f'level-name={worldName}\n'
-        open('server.properties', 'wt').writelines(propFileLines)
-                
-        vFileContent = open('versions.txt','rt').readlines()
-        open('versions.txt','w').close()
-        vFileContent[0] = worldName  + '\n'      
-        open('versions.txt', 'wt').writelines(vFileContent)
-                            
-        await ctx.send('Done!')
-    except:
-        await ctx.send('There was an error in downloading the world, try again in a few minutes')
+    propFileLines = open('server.properties','rt').readlines()           
+    for i in range(len(propFileLines)):
+        if 'level-name=' in propFileLines[i]:
+            propFileLines[i] = f'level-name={worldName}\n'
+    open('server.properties', 'wt').writelines(propFileLines)
+            
+    vFileContent = open('versions.txt','rt').readlines()
+    open('versions.txt','w').close()
+    vFileContent[0] = worldName  + '\n'      
+    open('versions.txt', 'wt').writelines(vFileContent)
 #Get World
 def getWorld(z):
     for name in z.namelist():
@@ -173,7 +169,6 @@ async def on_command_error(ctx, error):
     print(error)
     if isinstance(error, commands.CommandNotFound):
         await ctx.send('Invalid command')
-
 ############
 # Commands #
 ############
@@ -288,7 +283,7 @@ async def voted(ctx):
 #Map
 @client.command()
 async def map(ctx, arg):
-    if 'https://www.minecraftmaps.com/' in str(arg):
+    if 'www.minecraftmaps.com' in str(arg):
         yesAnswers = ['yes','ye','yea','yeah','yah','ya','y']
 
         await ctx.send('Would you like to save ' + worldName + '?')
@@ -301,13 +296,17 @@ async def map(ctx, arg):
             shutil.rmtree(fr'{worldName}/')
         except:
             m('World file not found')
-        await downloadWorld(ctx, arg)
+        await ctx.send('Downloading...')
+        downloadWorld(f'{str(arg)}/download')
+        await ctx.send('Success!')
     else:
         await ctx.send('That is not from minecraftmaps!')
 @map.error
 async def map_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Missing a link from minecraftmaps.com!')
+    else:
+        await ctx.send('There was an error, please try again later')
 #Saved Worlds
 @client.command(aliases=['savedworlds','worlds'])
 async def saved_worlds(ctx):
@@ -632,10 +631,7 @@ def printLog():
     while not serverStopped:
         line = server.stdout.readline()
         if not line.rstrip().decode() == '':
-            print(line.rstrip().decode()) 
-@client.command()
-async def test(ctx):
-    print('L,L'.split('f'))
+            print(line.rstrip().decode())
 client.remove_command('help')
 client.load_extension('cogs.help-commands')
 client.run(TOKEN)
